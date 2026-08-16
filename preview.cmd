@@ -20,7 +20,7 @@ if errorlevel 1 (
 
 if not exist "node_modules\@11ty\eleventy\bin\eleventy.js" (
   echo Installing the site tools. This only happens once...
-  call npm install
+  call npm install --no-package-lock
   if errorlevel 1 goto :failed
 )
 
