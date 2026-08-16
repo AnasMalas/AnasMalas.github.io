@@ -1,0 +1,22 @@
+{
+  "name": "anasmalas-site",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Anas Malas's engineering notes and hardware portfolio.",
+  "scripts": {
+    "build": "eleventy",
+    "dev": "eleventy --serve --watch",
+    "clean": "node -e \"require('fs').rmSync('_site', { recursive: true, force: true })\""
+  },
+  "devDependencies": {
+    "@11ty/eleventy": "^3.1.2",
+    "@11ty/eleventy-img": "^6.0.4"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "packageManager": "pnpm@11.19.0",
+  "pnpm": {
+    "onlyBuiltDependencies": ["sharp"]
+  }
+}

@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 680" role="img" aria-labelledby="title desc">
+  <title id="title">Connector architecture comparison</title>
+  <desc id="desc">A simplified diagram comparing a conventional connector assembly with a board-edge IDC connector assembly.</desc>
+  <defs>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse"><path d="M32 0H0V32" fill="none" stroke="#26404a" stroke-width="1" opacity=".42"/></pattern>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#ff7357"/></marker>
+  </defs>
+  <rect width="1200" height="680" rx="16" fill="#10252d"/>
+  <rect x="20" y="20" width="1160" height="640" rx="10" fill="url(#grid)"/>
+  <text x="60" y="72" fill="#a9c1bb" font-family="ui-monospace,Consolas,monospace" font-size="16" letter-spacing="2">A SIMPLIFIED COST MAP / NOT A MANUFACTURER DRAWING</text>
+  <line x1="600" y1="112" x2="600" y2="592" stroke="#42606a" stroke-width="2" stroke-dasharray="8 12"/>
+  <text x="74" y="142" fill="#ff7357" font-family="ui-monospace,Consolas,monospace" font-size="18" letter-spacing="2">CONVENTIONAL</text>
+  <text x="634" y="142" fill="#ff7357" font-family="ui-monospace,Consolas,monospace" font-size="18" letter-spacing="2">BOARD-EDGE IDC</text>
+  <g font-family="ui-sans-serif,system-ui,sans-serif">
+    <rect x="80" y="200" width="150" height="86" rx="8" fill="#e8eee9"/>
+    <text x="155" y="238" text-anchor="middle" fill="#10252d" font-size="18" font-weight="700">PCB</text>
+    <text x="155" y="264" text-anchor="middle" fill="#546c72" font-size="14">separate socket</text>
+    <rect x="330" y="180" width="150" height="126" rx="8" fill="#ff7357"/>
+    <text x="405" y="230" text-anchor="middle" fill="#10252d" font-size="18" font-weight="700">TERMINAL</text>
+    <text x="405" y="258" text-anchor="middle" fill="#10252d" font-size="14">crimped wire</text>
+    <rect x="80" y="420" width="400" height="72" rx="8" fill="none" stroke="#6c8a8d" stroke-width="2" stroke-dasharray="8 8"/>
+    <text x="280" y="463" text-anchor="middle" fill="#a9c1bb" font-size="16">plastic housing + assembly step</text>
+    <line x1="230" y1="243" x2="330" y2="243" stroke="#ff7357" stroke-width="3" marker-end="url(#arrow)"/>
+    <line x1="405" y1="306" x2="405" y2="420" stroke="#ff7357" stroke-width="3" marker-end="url(#arrow)"/>
+    <text x="80" y="552" fill="#a9c1bb" font-size="18">more parts</text>
+    <text x="80" y="580" fill="#a9c1bb" font-size="18">more handling</text>
+    <rect x="650" y="206" width="400" height="80" rx="8" fill="#e8eee9"/>
+    <rect x="1000" y="183" width="50" height="126" rx="7" fill="#ff7357"/>
+    <text x="850" y="240" text-anchor="middle" fill="#10252d" font-size="18" font-weight="700">PCB EDGE</text>
+    <text x="850" y="267" text-anchor="middle" fill="#546c72" font-size="14">electrical + mechanical feature</text>
+    <line x1="1050" y1="246" x2="1120" y2="246" stroke="#ff7357" stroke-width="3" marker-end="url(#arrow)"/>
+    <rect x="650" y="420" width="400" height="72" rx="8" fill="none" stroke="#ff7357" stroke-width="2"/>
+    <text x="850" y="463" text-anchor="middle" fill="#ffb1a0" font-size="16">IDC cuts insulation at insertion</text>
+    <line x1="850" y1="286" x2="850" y2="420" stroke="#ff7357" stroke-width="3" marker-end="url(#arrow)"/>
+    <text x="650" y="552" fill="#ffb1a0" font-size="18">fewer parts</text>
+    <text x="650" y="580" fill="#ffb1a0" font-size="18">fewer process steps</text>
+  </g>
+</svg>

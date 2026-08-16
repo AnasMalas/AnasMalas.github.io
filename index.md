@@ -1,15 +1,88 @@
- 
-<details> <summary>I created this blog to share and deepen my PCB and electronics knowledge. Click here to know more.</summary>
-<br/>
-Welcome to my blog!
-<br/><br/>  
-I'm an electronics engineer who is obsessed with making things that work on the very first try. I spent four years on my very first project (back when I did not know anything about PCB design) just to understand not only how to design, but why should it be done this or that way. The internet is full of contradicting opinions, even large companies such as Texas Instruments and Analog Devices can disagree with each other in datasheets and application notes while both being right... or both wrong. My duty is to understand why something is done and where it may be applicable. I hope to share some of what I learn here.
- <br/><br/>  
- On Aug 2022, I started posting PCB and electronics related content on LinkedIn. At the time, this had two reasons: Boost my chances of employment after graduating from university, and to share some of the knowledge I gained through self study and personal projects during university.
-<br/><br/>  
-I quickly found out that LinkedIn's 3000 character limit forced me to write and re-write the content until I felt that it was concise and precise enough. They say that you dont understand something unless you can explain it to a 5 year old, and I felt that I dont fully grasp a subject whenever the character limit didnt suffice. Most of my posts took 5+ hours to write, most of which is to understand the topic better.
-<br/><br/>  
-While I probably wont be able to post often, I would like to continue doing so. My posts will aim to fit fully within the 3000 character limit (excluding appendix), and I will not use AI tools to help me write the posts as that reduces my learning value (maybe I'll use them to help me organize my thoughts or find references, but all writing is my own).
-</details>
-
 ---
+layout: default
+title: Anas Malas — Hardware Engineer
+---
+
+<section class="hero">
+  <div class="site-shell hero-grid">
+    <div>
+      <p class="eyebrow"><span class="status-dot" aria-hidden="true"></span> Hardware engineer · PCB design</p>
+      <h1>Electronics that make it past the bench.</h1>
+      <p class="hero-intro">I design, question, and document practical electronics—from the constraints hidden in a footprint to the trade-offs that decide whether a product works at scale.</p>
+      <div class="hero-actions">
+        <a class="button" href="#work">See selected work <span aria-hidden="true">↓</span></a>
+        <a class="text-link" href="{{ '/notes/' | relative_url }}">Read engineering notes →</a>
+      </div>
+    </div>
+    <aside class="signal-card" aria-label="Focus areas">
+      <p class="signal-label">CURRENT SIGNAL</p>
+      <p class="signal-title">Designing for the part you can’t see in the schematic.</p>
+      <ul>
+        <li>PCB layout &amp; stack-up</li>
+        <li>Design for manufacture</li>
+        <li>Hardware investigation</li>
+      </ul>
+    </aside>
+  </div>
+</section>
+
+<section id="work" class="section site-shell">
+  <div class="section-heading">
+    <p class="eyebrow">Selected work</p>
+    <h2>Small details. Real constraints.</h2>
+    <p>Projects and experiments where the interesting part is the engineering decision, not the render.</p>
+  </div>
+
+  <div class="work-grid">
+    <article class="work-card work-card-featured">
+      <div class="card-index">01 / OPEN SOURCE</div>
+      <h3>PCB edge USB-C</h3>
+      <p>A slim USB-C connector footprint that uses the board edge itself—tested, documented, and released for KiCad and EasyEDA.</p>
+      <div class="tag-list"><span>USB-C</span><span>Footprints</span><span>DFM</span></div>
+      <a class="card-link" href="https://github.com/AnasMalas/pcb-edge-usb-c">Explore the repository <span aria-hidden="true">↗</span></a>
+    </article>
+    <article class="work-card">
+      <div class="card-index">02 / DESIGN PRINCIPLE</div>
+      <h3>Make the trade-off visible</h3>
+      <p>Good hardware isn’t a collection of rules. It is knowing which constraint matters now: cost, return path, manufacturability, reliability, or time.</p>
+      <a class="card-link" href="#notes">Read the notes <span aria-hidden="true">↓</span></a>
+    </article>
+  </div>
+</section>
+
+<section id="notes" class="notes-section">
+  <div class="site-shell">
+    <div class="section-heading section-heading-inline">
+      <div>
+        <p class="eyebrow">Engineering notes</p>
+        <h2>Clear thinking, written down.</h2>
+      </div>
+      <a class="text-link" href="{{ '/notes/' | relative_url }}">All notes →</a>
+    </div>
+    <div class="note-list">
+      {% assign published_posts = site.posts | where_exp: "post", "post.title != 'Blog Post Title From First Header'" %}
+      {% for post in published_posts limit: 3 %}
+      <article class="note-row">
+        <time datetime="{{ post.date | date_to_xmlschema }}">{{ post.date | date: "%Y.%m.%d" }}</time>
+        <div>
+          <p class="note-kind">{{ post.tags | first | default: "Engineering" }}</p>
+          <h3><a href="{{ post.url | relative_url }}">{{ post.title }}</a></h3>
+        </div>
+        <a class="arrow-link" href="{{ post.url | relative_url }}" aria-label="Read {{ post.title }}">↗</a>
+      </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<section id="about" class="section site-shell about-grid">
+  <div>
+    <p class="eyebrow">About</p>
+    <h2>I’m interested in the “why” behind the layout.</h2>
+  </div>
+  <div class="about-copy">
+    <p>I’m Anas, an electronics engineer focused on PCB design and the messy, satisfying gap between an idea and hardware that works reliably.</p>
+    <p>The internet is full of conflicting design advice. I use this space to investigate it, share what I learn, and keep the reasoning attached to the rule.</p>
+    <a class="text-link" href="https://www.linkedin.com/in/{{ site.linkedin_username }}/">More about my work on LinkedIn ↗</a>
+  </div>
+</section>

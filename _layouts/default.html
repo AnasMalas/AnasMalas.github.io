@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    {% include head.html %}
+  </head>
+  <body>
+    <a class="skip-link" href="#content">Skip to content</a>
+    <header class="site-header">
+      <div class="site-shell header-inner">
+        <a class="wordmark" href="{{ '/' | relative_url }}" aria-label="Anas Malas home">
+          <span class="wordmark-mark" aria-hidden="true"></span>
+          <span>Anas Malas</span>
+        </a>
+        <nav aria-label="Primary navigation">
+          <a href="{{ '/' | relative_url }}#work">Work</a>
+          <a href="{{ '/notes/' | relative_url }}">Notes</a>
+          <a href="{{ '/' | relative_url }}#about">About</a>
+          <a class="nav-external" href="https://www.linkedin.com/in/{{ site.linkedin_username }}/" rel="me">LinkedIn <span aria-hidden="true">↗</span></a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="content">
+      {{ content }}
+    </main>
+
+    <footer class="site-footer">
+      <div class="site-shell footer-inner">
+        <p>© {{ 'now' | date: '%Y' }} Anas Malas. Built for curious engineers.</p>
+        <div>
+          <a href="https://github.com/{{ site.github_username }}">GitHub</a>
+          <a href="https://www.linkedin.com/in/{{ site.linkedin_username }}/">LinkedIn</a>
+          <a href="mailto:{{ site.email }}">Email</a>
+          <a href="{{ '/feed.xml' | relative_url }}">RSS</a>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

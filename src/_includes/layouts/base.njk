@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="{{ site.language }}" data-theme="system">
+  <head>
+    {% include "partials/head.njk" %}
+  </head>
+  <body>
+    <a class="skip-link" href="#content">Skip to content</a>
+    <header class="site-header">
+      <div class="shell header-inner">
+        <a class="wordmark" href="/" aria-label="Anas Malas home">
+          <span class="wordmark-mark" aria-hidden="true"><i></i></span>
+          <span>{{ site.name }}</span>
+        </a>
+        <nav class="site-nav" aria-label="Primary navigation">
+          <a href="/#work">Work</a>
+          <a href="/notes/">Notes</a>
+          <a href="/#about">About</a>
+          <a href="{{ site.github }}" rel="me noopener">GitHub <span aria-hidden="true">↗</span></a>
+          <button class="theme-toggle" type="button" data-theme-toggle aria-label="Change color theme">
+            <span class="theme-toggle-icon" aria-hidden="true">◐</span>
+            <span data-theme-label>System</span>
+          </button>
+        </nav>
+      </div>
+    </header>
+
+    <main id="content">
+      {% block content %}{{ content | safe }}{% endblock %}
+    </main>
+
+    <footer class="site-footer">
+      <div class="shell footer-inner">
+        <div>
+          <p class="footer-signoff">Built for curious engineers.</p>
+          <p class="footer-small">© {{ site.year }} {{ site.name }}. No tracking, no newsletter funnel.</p>
+        </div>
+        <div class="footer-links">
+          <a href="{{ site.github }}">GitHub</a>
+          <a href="{{ site.linkedin }}">LinkedIn</a>
+          <a href="mailto:{{ site.email }}">Email</a>
+          <a href="/feed.xml">RSS</a>
+        </div>
+      </div>
+    </footer>
+    <script src="/assets/js/theme.js" defer></script>
+  </body>
+</html>

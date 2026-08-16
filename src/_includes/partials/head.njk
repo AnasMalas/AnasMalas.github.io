@@ -1,0 +1,19 @@
+{% set pageTitle = title or site.title %}
+{% set pageDescription = description or site.description %}
+{% set canonical = site.url + page.url %}
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="{{ pageDescription }}">
+<meta name="author" content="{{ site.name }}">
+<meta name="theme-color" content="#f3f0e8">
+<link rel="canonical" href="{{ canonical }}">
+<meta property="og:type" content="{{ 'article' if layout == 'layouts/note.njk' else 'website' }}">
+<meta property="og:title" content="{{ pageTitle }}">
+<meta property="og:description" content="{{ pageDescription }}">
+<meta property="og:url" content="{{ canonical }}">
+<meta property="og:site_name" content="{{ site.name }}">
+<meta name="twitter:card" content="summary">
+<title>{{ pageTitle }}</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="alternate" type="application/atom+xml" title="{{ site.name }} notes" href="/feed.xml">
+<link rel="stylesheet" href="/assets/css/site.css">

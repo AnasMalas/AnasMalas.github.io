@@ -1,1 +1,7 @@
-﻿_site
+_site
+_public
+node_modules
+.cache
+.eleventy-cache
+Gemfile.lock
+.jekyll-cache

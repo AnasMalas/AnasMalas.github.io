@@ -1,0 +1,41 @@
+{% extends "layouts/base.njk" %}
+
+{% set pageDescription = description or (content | excerpt(160)) %}
+
+{% block content %}
+<article class="note-page h-entry" itemscope itemtype="https://schema.org/BlogPosting">
+  <header class="note-hero shell reading-width">
+    <a class="back-link" href="/notes/">← All notes</a>
+    <p class="eyebrow"><span class="status-dot" aria-hidden="true"></span>{{ tags[0] or "Engineering note" }}</p>
+    <h1 class="note-title p-name" itemprop="headline">{{ title }}</h1>
+    <p class="note-dek" itemprop="description">{{ description }}</p>
+    <div class="note-meta">
+      <time class="dt-published" datetime="{{ date | isoDate }}" itemprop="datePublished">{{ date | readableDate }}</time>
+      <span aria-hidden="true">·</span>
+      <span itemprop="author" itemscope itemtype="https://schema.org/Person"><span itemprop="name">{{ site.name }}</span></span>
+      {% if readTime %}<span aria-hidden="true">·</span><span>{{ readTime }} min read</span>{% endif %}
+    </div>
+  </header>
+
+  {% if heroImage %}
+  <figure class="note-hero-image shell reading-width">
+    <img src="{{ heroImage.src }}" width="{{ heroImage.width }}" height="{{ heroImage.height }}" alt="{{ heroImage.alt }}" loading="eager" decoding="async">
+    {% if heroImage.caption %}<figcaption>{{ heroImage.caption }}</figcaption>{% endif %}
+  </figure>
+  {% endif %}
+
+  <div class="note-body reading-width e-content" itemprop="articleBody">
+    {{ content | safe }}
+  </div>
+
+  <footer class="note-footer shell reading-width">
+    <div class="note-tags" aria-label="Topics">
+      {% for tag in tags %}<a href="/notes/" class="tag">{{ tag }}</a>{% endfor %}
+    </div>
+    <div class="note-actions">
+      <a class="text-link" href="/notes/">← More notes</a>
+      <a class="text-link" href="https://www.linkedin.com/sharing/share-offsite/?url={{ site.url }}{{ page.url | urlencode }}" rel="noopener">Share on LinkedIn ↗</a>
+    </div>
+  </footer>
+</article>
+{% endblock %}

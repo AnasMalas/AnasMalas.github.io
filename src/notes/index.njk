@@ -1,0 +1,25 @@
+---
+layout: layouts/base.njk
+title: Engineering Notes
+description: Short, practical observations on electronics, PCB design, and the decisions behind reliable hardware.
+permalink: /notes/
+---
+
+<section class="archive-header shell">
+  <a class="back-link" href="/">← Home</a>
+  <p class="eyebrow"><span class="status-dot" aria-hidden="true"></span> Archive</p>
+  <h1>Engineering notes.</h1>
+  <p>Short investigations into electronics, PCB design, and the manufacturing decisions that make hardware behave in the real world.</p>
+</section>
+
+<section class="archive-list shell">
+  {% for note in collections.notes %}
+  <article class="archive-row">
+    <time datetime="{{ note.date | isoDate }}">{{ note.date | readableDate }}</time>
+    <div><p class="note-kind">{{ note.data.tags[0] or "Engineering" }}</p><h2><a href="{{ note.url }}">{{ note.data.title }}</a></h2><p class="note-excerpt">{{ note.data.description }}</p></div>
+    <a class="arrow-link" href="{{ note.url }}" aria-label="Read {{ note.data.title }}">↗</a>
+  </article>
+  {% else %}
+  <p class="empty-state">No notes published yet.</p>
+  {% endfor %}
+</section>
