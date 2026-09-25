@@ -14,6 +14,7 @@
 {% set mobileView = media | presentationVariant(isFullPage, 'mobile') %}
 <article class="post-card{% if hasImages %} post-card-photo post-title-desktop-{{ desktopView.titlePlacement }} post-title-mobile-{{ mobileView.titlePlacement }} post-crop-aspect-desktop-{{ desktopView.cropAspect }} post-crop-aspect-mobile-{{ mobileView.cropAspect }} post-crop-fill-desktop-{{ desktopView.cropFill }} post-crop-fill-mobile-{{ mobileView.cropFill }}{% else %} post-card-text{% endif %}{% if isRepository %} repository-card{% endif %}{% if isFullPage %} post-card-full{% endif %}{% if isPlaceholder %} post-card-placeholder{% endif %}" id="{{ item.slug }}"{% if isDisclosure %} data-disclosure{% endif %} data-open="{{ 'true' if isExpanded else 'false' }}"{% if hasImages %} style="--crop-desktop-x: {{ desktopView.cropX }}%; --crop-desktop-y: {{ desktopView.cropY }}%; --crop-desktop-zoom: {{ desktopView.cropZoom }}; --crop-desktop-color: {{ desktopView.cropColor }}; --crop-mobile-x: {{ mobileView.cropX }}%; --crop-mobile-y: {{ mobileView.cropY }}%; --crop-mobile-zoom: {{ mobileView.cropZoom }}; --crop-mobile-color: {{ mobileView.cropColor }};"{% endif %}>
   <div class="post-visual">
+    {% if not isFullPage %}<a class="post-visual-link" href="{{ item.fullPageUrl }}" aria-label="Open {{ displayTitle | escape }}">{% endif %}
     {% include "partials/post-media.njk" %}
     {% if hasImages %}
       <div class="post-title-block post-title-block-overlay">
@@ -27,8 +28,10 @@
         {% endif %}
       </div>
     {% endif %}
+    {% if not isFullPage %}</a>{% endif %}
   </div>
   <div class="post-surface">
+    {% if not isFullPage %}<a class="post-title-link" href="{{ item.fullPageUrl }}">{% endif %}
     {% if hasImages %}
       <div class="post-title-block post-title-block-outside">
         <div class="post-meta"><span class="post-kind">{{ displayKind }}</span>{% if media.date %}<time datetime="{{ media.date }}">{{ media.date | readableDate }}</time>{% endif %}</div>
@@ -52,6 +55,7 @@
         {% endif %}
       </div>
     {% endif %}
+    {% if not isFullPage %}</a>{% endif %}
     <div class="reading-anchor" aria-hidden="true"></div>
     {% if hasBody %}
     <div class="post-body" id="body-{{ item.slug }}"{% if isDisclosure %} data-disclosure-body{% endif %}>

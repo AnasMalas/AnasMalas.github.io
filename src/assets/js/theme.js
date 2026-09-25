@@ -41,6 +41,14 @@
     });
   });
 
+  document.querySelectorAll("[data-disclosure] .post-body").forEach(function (body) {
+    body.addEventListener("click", function (event) {
+      const article = body.closest("[data-disclosure]");
+      if (article.dataset.open === "true" || body.isContentEditable || event.target.closest("a, button, input, select, textarea, [contenteditable='true']")) return;
+      article.querySelector("[data-disclosure-button]")?.click();
+    });
+  });
+
   function expandHashTarget() {
     const target = location.hash ? document.getElementById(decodeURIComponent(location.hash.slice(1))) : null;
     if (target && target.matches("[data-disclosure]")) {
