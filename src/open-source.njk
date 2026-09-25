@@ -1,0 +1,17 @@
+---
+layout: layouts/base.njk
+title: Open source — Anas Malas
+description: Open hardware and reusable engineering work by Anas Malas.
+permalink: /open-source/
+---
+<header class="page-intro shell"><h1>Open source</h1></header>
+<div class="reading-layout shell">
+  <section class="article-stream" aria-label="Open source projects">
+    {% set postKind = 'Open source' %}
+    {% set repository = true %}
+    {% for item in siteContent.openSource %}
+      {% include "partials/post-card.njk" %}
+    {% endfor %}
+  </section>
+  {% include "partials/project-sidebar.njk" %}
+</div>

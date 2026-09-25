@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Anas Malas — Studio</title>
+    <link rel="stylesheet" href="/__studio/studio.css">
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand"><strong>Anas Malas</strong><span>Studio</span></div>
+      <div class="document-name"><span data-kind>Site</span><strong data-title>Loading…</strong><select data-picker aria-label="Choose a page"></select></div>
+      <div class="state" data-state><i></i><span>Starting Studio…</span></div>
+      <div class="top-actions">
+        <button class="button button-quiet" type="button" data-edit>Edit</button>
+        <button class="button button-save" type="button" data-save disabled>Save changes</button>
+        <button class="button button-publish" type="button" data-open-publish disabled>Publish</button>
+      </div>
+    </header>
+
+    <div class="studio-shell">
+      <aside class="library">
+        <label class="library-search"><span aria-hidden="true">⌕</span><input type="search" placeholder="Find a page…" data-search></label>
+        <nav data-library aria-label="Site pages"></nav>
+        <footer>
+          <span data-branch>Local repository</span>
+          <a href="https://anasmalas.com/" target="_blank" rel="noopener">View live site ↗</a>
+        </footer>
+      </aside>
+
+      <main class="workspace">
+        <div class="viewbar">
+          <div class="view-options" aria-label="Visible previews">
+            <label><input type="checkbox" value="desktop-light" checked><span>Desktop light</span></label>
+            <label><input type="checkbox" value="mobile-light" checked><span>Mobile light</span></label>
+            <label><input type="checkbox" value="desktop-dark" checked><span>Desktop dark</span></label>
+            <label><input type="checkbox" value="mobile-dark" checked><span>Mobile dark</span></label>
+          </div>
+          <fieldset class="ratio-switch" aria-label="Desktop screen ratio">
+            <legend>Desktop</legend>
+            <button class="active" type="button" data-desktop-ratio="16:10">16:10</button>
+            <button type="button" data-desktop-ratio="16:9">16:9</button>
+          </fieldset>
+          <div class="composition-tools" data-composition hidden>
+            <fieldset class="default-state" aria-label="Default shared-card state">
+              <legend>Opens</legend>
+              <button type="button" data-default-open="false">Collapsed</button>
+              <button type="button" data-default-open="true">Expanded</button>
+            </fieldset>
+            <div class="surface-matrix" data-surface-matrix></div>
+          </div>
+          <div class="formatbar" data-formatbar hidden>
+            <button type="button" data-command="bold" aria-label="Bold"><b>B</b></button>
+            <button type="button" data-command="italic" aria-label="Italic"><i>I</i></button>
+            <button type="button" data-block="h2">H2</button>
+            <button type="button" data-block="h3">H3</button>
+            <button type="button" data-command="insertUnorderedList">List</button>
+            <button type="button" data-link>Link</button>
+            <button type="button" data-inline-image>Image</button>
+            <button type="button" data-details>Details</button>
+          </div>
+        </div>
+
+        <section class="canvas" data-canvas aria-live="polite"></section>
+      </main>
+    </div>
+
+    <input type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml" data-inline-file hidden>
+    <input type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml" data-lead-file hidden>
+
+    <dialog class="dialog" data-details-dialog>
+      <form method="dialog" class="dialog-card">
+        <header><div><span>Post settings</span><strong>Details</strong></div><button value="cancel" aria-label="Close">×</button></header>
+        <div class="fields">
+          <label><span>Date</span><input type="date" data-detail="date"></label>
+          <label><span>Lead image</span><div class="field-action"><input type="text" data-detail="image" placeholder="/assets/images/…"><button type="button" data-upload-lead>Choose</button></div></label>
+          <label><span>Image description</span><input type="text" data-detail="alt"></label>
+          <label><span>Image fit</span><select data-detail="fit"><option value="">Natural</option><option value="contain">Contain</option><option value="cover">Cover</option></select></label>
+          <label><span>GitHub repository</span><input type="url" data-detail="repo" placeholder="https://github.com/…"></label>
+          <label><span>Related page</span><input type="text" data-detail="relatedUrl" placeholder="/articles/…"></label>
+          <label><span>Related link label</span><input type="text" data-detail="relatedLabel"></label>
+        </div>
+        <footer><button class="button button-save" value="close">Done</button></footer>
+      </form>
+    </dialog>
+
+    <dialog class="crop-dialog" data-crop-dialog aria-label="Large crop editor"></dialog>
+
+    <dialog class="dialog" data-publish-dialog>
+      <form method="dialog" class="dialog-card publish-card">
+        <header><div><span>GitHub Pages</span><strong>Publish the saved site?</strong></div><button value="cancel" aria-label="Close">×</button></header>
+        <p>The Studio will run a production build, commit the current site files, and push them to <code>main</code>. GitHub Pages will update a moment later.</p>
+        <div class="publish-log" data-publish-log hidden></div>
+        <footer><button class="button button-quiet" value="cancel">Cancel</button><button class="button button-publish" type="button" data-publish>Publish now</button></footer>
+      </form>
+    </dialog>
+
+    <div class="toast" role="status" aria-live="polite" data-toast></div>
+    <script src="/__studio/config.js"></script>
+    <script src="/__studio/studio.js"></script>
+  </body>
+</html>

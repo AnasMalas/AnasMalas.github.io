@@ -1,0 +1,11 @@
+{% if media.images and media.images.length %}
+<div class="post-gallery" aria-label="Lead image">
+  {% for postImage in media.images %}{% if loop.first %}
+  <figure class="post-photo"><img src="{{ postImage.src }}" alt="{{ postImage.alt or '' }}" loading="lazy" decoding="async">{% if postImage.caption %}<figcaption>{{ postImage.caption }}</figcaption>{% endif %}</figure>
+  {% endif %}{% endfor %}
+</div>
+{% elif media.image %}
+<div class="post-gallery">
+  <figure class="post-photo"><img src="{{ media.image }}" alt="{{ media.alt or '' }}" loading="lazy" decoding="async"></figure>
+</div>
+{% endif %}

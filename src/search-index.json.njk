@@ -1,0 +1,25 @@
+---
+permalink: /search-index.json
+eleventyExcludeFromCollections: true
+---
+[
+{% for item in siteContent.articles %}
+{% set post = item | readingPost %}
+{% set media = presentation[item.slug] %}
+{% set searchImage = media.images[0].src if media.images and media.images.length else media.image %}
+{"title":{{ (item.studio.title or media.displayTitle or post.lead) | json | safe }},"summary":{{ ((item.studio.bodyHtml | excerpt) if item.studio.bodyHtml else item.paragraphs[0]) | json | safe }},"content":{{ ((item.studio.bodyHtml | excerpt(10000)) if item.studio.bodyHtml else (item.paragraphs | join('\n\n'))) | json | safe }},"type":"Article","url":{{ item.fullPageUrl | json | safe }},"date":{{ (media.date or '') | json | safe }},"image":{{ (searchImage or '') | json | safe }}}{% if not loop.last %},{% endif %}
+{% endfor %}{% if siteContent.articles.length and (siteContent.projects.length or siteContent.openSource.length) %},{% endif %}
+{% for item in siteContent.projects %}
+{% set post = item | readingPost %}
+{% set media = presentation[item.slug] %}
+{% set searchImage = media.images[0].src if media.images and media.images.length else media.image %}
+{"title":{{ (item.studio.title or media.displayTitle or post.lead) | json | safe }},"summary":{{ ((item.studio.bodyHtml | excerpt) if item.studio.bodyHtml else item.paragraphs[0]) | json | safe }},"content":{{ ((item.studio.bodyHtml | excerpt(10000)) if item.studio.bodyHtml else (item.paragraphs | join('\n\n'))) | json | safe }},"type":"Project","url":{{ item.fullPageUrl | json | safe }},"date":{{ (media.date or '') | json | safe }},"image":{{ (searchImage or '') | json | safe }}}{% if not loop.last %},{% endif %}
+{% endfor %}{% if siteContent.projects.length and siteContent.openSource.length %},{% endif %}
+{% for item in siteContent.openSource %}
+{% set post = item | readingPost %}
+{% set media = presentation[item.slug] %}
+{% set searchImage = media.images[0].src if media.images and media.images.length else media.image %}
+{"title":{{ (item.studio.title or media.displayTitle or post.lead) | json | safe }},"summary":{{ ((item.studio.bodyHtml | excerpt) if item.studio.bodyHtml else item.paragraphs[0]) | json | safe }},"content":{{ ((item.studio.bodyHtml | excerpt(10000)) if item.studio.bodyHtml else (item.paragraphs | join('\n\n'))) | json | safe }},"type":"Open source","url":{{ item.fullPageUrl | json | safe }},"date":{{ (media.date or '') | json | safe }},"image":{{ (searchImage or '') | json | safe }},"repo":{{ (media.repo or '') | json | safe }}}{% if not loop.last %},{% endif %}
+{% endfor %}{% if siteContent.articles.length or siteContent.projects.length or siteContent.openSource.length %},{% endif %}
+{"title":"About Anas Malas","summary":"Welcome to my blog!","content":{{ ((studioContent.pages.about.bodyHtml | excerpt(10000)) if studioContent.pages.about and studioContent.pages.about.bodyHtml else "I'm an electronics engineer who is obsessed with making things that work on the very first try. I spent four years on my very first project (back when I did not know anything about PCB design) just to understand not only how to design, but why should it be done this or that way. The internet is full of contradicting opinions, even large companies such as Texas Instruments and Analog Devices can disagree with each other in datasheets and application notes while both being right... or both wrong.") | json | safe }},"type":"About","url":"/about/","date":"","image":""}
+]

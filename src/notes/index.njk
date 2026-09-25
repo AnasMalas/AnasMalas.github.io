@@ -1,23 +1,25 @@
 ---
 layout: layouts/base.njk
-title: Engineering Notes
-description: Short, practical observations on electronics, PCB design, and the decisions behind reliable hardware.
+title: Articles — Anas Malas
+description: Electronics, mechanical design, and experiments by Anas Malas.
 permalink: /notes/
 ---
 
 <section class="archive-header shell">
   <a class="back-link" href="/">← Home</a>
-  <p class="eyebrow"><span class="status-dot" aria-hidden="true"></span> Archive</p>
-  <h1>Engineering notes.</h1>
-  <p>Short investigations into electronics, PCB design, and the manufacturing decisions that make hardware behave in the real world.</p>
+  <p class="section-label">Archive</p>
+  <h1>Articles</h1>
+  <p>Electronics, mechanical design, and experiments.</p>
 </section>
 
 <section class="archive-list shell">
-  {% for note in collections.notes %}
+  {% for item in linkedin.articles %}
+  {% set media = presentation[item.slug] %}
+  {% set post = item | readingPost %}
   <article class="archive-row">
-    <time datetime="{{ note.date | isoDate }}">{{ note.date | readableDate }}</time>
-    <div><p class="note-kind">{{ note.data.tags[0] or "Engineering" }}</p><h2><a href="{{ note.url }}">{{ note.data.title }}</a></h2><p class="note-excerpt">{{ note.data.description }}</p></div>
-    <a class="arrow-link" href="{{ note.url }}" aria-label="Read {{ note.data.title }}">↗</a>
+    <div class="archive-meta"><span class="post-kind">Article</span>{% if media.date %}<time datetime="{{ media.date }}">{{ media.date | readableDate }}</time>{% endif %}</div>
+    <div>{% if item.title %}<h2><a href="/#{{ item.slug }}">{{ item.title }}</a></h2>{% endif %}<p class="note-excerpt">{{ item.paragraphs[0] }}</p></div>
+    <a class="arrow-link" href="/#{{ item.slug }}" aria-label="Read {{ post.lead }}">↗</a>
   </article>
   {% else %}
   <p class="empty-state">No notes published yet.</p>

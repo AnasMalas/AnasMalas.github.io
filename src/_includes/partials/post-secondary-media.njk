@@ -1,0 +1,7 @@
+{% if media.images and media.images.length > 1 %}
+<div class="post-secondary-gallery" aria-label="More post images">
+  {% for postImage in media.images %}{% if not loop.first %}
+  <figure><img src="{{ postImage.src }}" alt="{{ postImage.alt or '' }}" loading="lazy" decoding="async">{% if postImage.caption %}<figcaption>{{ postImage.caption }}</figcaption>{% endif %}</figure>
+  {% endif %}{% endfor %}
+</div>
+{% endif %}

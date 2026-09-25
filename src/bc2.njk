@@ -1,0 +1,16 @@
+---
+layout: layouts/base.njk
+title: BC2 — Anas Malas
+description: Coming soon
+permalink: /bc2/
+---
+<main class="placeholder-page shell">
+  <p class="post-kind">Project</p>
+  <h1>{{ studioContent.pages.bc2.title if studioContent.pages.bc2 and studioContent.pages.bc2.title else 'BC2' }}</h1>
+  {% if studioContent.pages.bc2 and studioContent.pages.bc2.bodyHtml %}
+  <div class="studio-page-copy">{{ studioContent.pages.bc2.bodyHtml | safe }}</div>
+  {% else %}
+  <div class="studio-page-copy"><p>Coming soon</p></div>
+  {% endif %}
+  <a href="/bc2/console/">Console <span aria-hidden="true">↗</span></a>
+</main>

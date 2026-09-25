@@ -6,6 +6,7 @@
   "scripts": {
     "build": "eleventy",
     "dev": "eleventy --serve --watch",
+    "studio": "node tools/studio-server.js",
     "clean": "node -e \"require('fs').rmSync('_site', { recursive: true, force: true })\""
   },
   "devDependencies": {

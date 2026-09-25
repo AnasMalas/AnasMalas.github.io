@@ -5,6 +5,12 @@ eleventyExcludeFromCollections: true
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>{{ site.url }}/</loc></url>
+  <url><loc>{{ site.url }}/projects/</loc></url>
+  <url><loc>{{ site.url }}/open-source/</loc></url>
+  <url><loc>{{ site.url }}/about/</loc></url>
   <url><loc>{{ site.url }}/notes/</loc></url>
+  <url><loc>{{ site.url }}/bc2/</loc></url>
+  <url><loc>{{ site.url }}/bc2/console/</loc></url>
+  {% for item in siteContent.all %}<url><loc>{{ site.url }}{{ item.fullPageUrl }}</loc></url>{% endfor %}
   {% for note in collections.notes %}<url><loc>{{ site.url }}{{ note.url }}</loc><lastmod>{{ note.date | isoDate }}</lastmod></url>{% endfor %}
 </urlset>

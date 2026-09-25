@@ -1,0 +1,99 @@
+---
+permalink: /editor/
+eleventyExcludeFromCollections: true
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Article editor — Anas Malas</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="stylesheet" href="/assets/css/editor.css">
+  </head>
+  <body>
+    <header class="studio-bar">
+      <a class="studio-brand" href="/" aria-label="Return to the site"><strong>Anas Malas</strong><span>Editor</span></a>
+
+      <div class="format-tools" role="toolbar" aria-label="Text formatting">
+        <button type="button" data-command="bold" title="Bold"><strong>B</strong></button>
+        <button type="button" data-command="italic" title="Italic"><em>I</em></button>
+        <button type="button" data-block="h2" title="Heading 2">H2</button>
+        <button type="button" data-block="h3" title="Heading 3">H3</button>
+        <button type="button" data-command="insertUnorderedList" title="Bulleted list">List</button>
+        <button type="button" data-block="blockquote" title="Quote">Quote</button>
+        <button type="button" data-link title="Add link">Link</button>
+        <button type="button" data-inline-image title="Insert inline image">Image</button>
+      </div>
+
+      <div class="layout-tools">
+        <label><span>Style</span><select data-layout><option value="text">Text</option><option value="feature">Photo</option></select></label>
+        <label><span>Title</span><select data-treatment disabled><option value="lower">Lower</option><option value="panel-top">Panel top</option><option value="panel-bottom">Panel bottom</option><option value="panel-left">Panel left</option><option value="panel-right">Panel right</option></select></label>
+      </div>
+
+      <fieldset class="view-switches">
+        <legend>Visible views</legend>
+        <label><input type="checkbox" value="desktop-light" checked><span>Light</span></label>
+        <label><input type="checkbox" value="desktop-dark" checked><span>Dark</span></label>
+        <label><input type="checkbox" value="phone-light" checked><span>Phone L</span></label>
+        <label><input type="checkbox" value="phone-dark" checked><span>Phone D</span></label>
+      </fieldset>
+
+      <div class="studio-actions">
+        <span class="save-state" role="status" aria-live="polite" data-save-state>Saved</span>
+        <button type="button" class="quiet-button" data-details>Details</button>
+        <button type="button" class="primary-button" data-download>Download</button>
+      </div>
+    </header>
+
+    <main class="canvas-stage" data-canvas-stage>
+      <article class="canvas-card desktop-card light-card" data-view-card="desktop-light">
+        <header><span><i></i> Desktop · light</span><small>1200 × 900</small></header>
+        <div class="desktop-viewport"><iframe title="Editable desktop light page" data-view="desktop-light"></iframe></div>
+      </article>
+      <article class="canvas-card desktop-card dark-card" data-view-card="desktop-dark">
+        <header><span><i></i> Desktop · dark</span><small>1200 × 900</small></header>
+        <div class="desktop-viewport"><iframe title="Editable desktop dark page" data-view="desktop-dark"></iframe></div>
+      </article>
+      <article class="canvas-card phone-card light-card" data-view-card="phone-light">
+        <header><span><i></i> Phone · light</span><small>390 × 844</small></header>
+        <div class="phone-viewport"><iframe title="Editable phone light page" data-view="phone-light"></iframe></div>
+      </article>
+      <article class="canvas-card phone-card dark-card" data-view-card="phone-dark">
+        <header><span><i></i> Phone · dark</span><small>390 × 844</small></header>
+        <div class="phone-viewport"><iframe title="Editable phone dark page" data-view="phone-dark"></iframe></div>
+      </article>
+    </main>
+
+    <dialog class="details-dialog" data-dialog>
+      <form method="dialog" class="dialog-shell">
+        <header><div><strong>Article details</strong><span>Source settings that do not appear on the page.</span></div><button value="close" aria-label="Close">×</button></header>
+        <div class="dialog-fields">
+          <label><span>Slug</span><input type="text" data-setting="slug"></label>
+          <label><span>Tags</span><input type="text" data-setting="tags" placeholder="PCB design, DFM"></label>
+          <label class="image-setting"><span>Image path or URL</span><input type="text" data-setting="image" placeholder="/assets/images/posts/…"></label>
+          <label class="image-setting"><span>Image description</span><input type="text" data-setting="imageAlt"></label>
+          <label class="image-setting"><span>Image caption</span><input type="text" data-setting="caption"></label>
+        </div>
+        <footer><button type="button" class="quiet-button" data-copy>Copy source</button><button value="close" class="primary-button">Done</button></footer>
+      </form>
+    </dialog>
+
+    <dialog class="details-dialog image-dialog" data-image-dialog>
+      <form method="dialog" class="dialog-shell">
+        <header><div><strong>Insert image</strong><span>The image will be placed at the current caret.</span></div><button value="close" aria-label="Close">×</button></header>
+        <div class="dialog-fields">
+          <label><span>Image path or URL</span><input type="text" data-inline-setting="src" placeholder="/assets/images/posts/…" required></label>
+          <label><span>Description</span><input type="text" data-inline-setting="alt" placeholder="Describe the image" required></label>
+          <label><span>Caption</span><input type="text" data-inline-setting="caption" placeholder="Optional"></label>
+          <label><span>Size</span><select data-inline-setting="size"><option value="full">Full width</option><option value="compact">Compact</option></select></label>
+          <label><span>Alignment</span><select data-inline-setting="align"><option value="center">Center</option><option value="left">Left</option><option value="right">Right</option></select></label>
+        </div>
+        <footer><button value="close" class="quiet-button">Cancel</button><button type="button" class="primary-button" data-insert-image>Insert image</button></footer>
+      </form>
+    </dialog>
+
+    <script src="/assets/js/editor.js"></script>
+  </body>
+</html>

@@ -1,0 +1,78 @@
+{
+  "posts": {
+    "usb-c-edge": {
+      "title": "What does it take to make the slimmest possible PCB? Sometimes, even a type C connector is too thick. I created this board edge USB C footprint, and now it is open source!",
+      "bodyHtml": "<p class=\"post-excerpt\">Repo: <a href=\"https://lnkd.in/djgccZi8\" rel=\"noopener\">https://lnkd.in/djgccZi8</a> I am floored by the reception I got for \"The Negotiator\" emergency power supply card. Some people have already sent photos using it, I love that! Here's that post, if you havent seen it: <a href=\"https://lnkd.in/dbTybcf4\" rel=\"noopener\">https://lnkd.in/dbTybcf4</a> I created this footprint after thinking \"this must exist\", and while I found multiple similar footprints, they werent quite right.</p><p>Some didnt follow the dimensions in the spec, others took unfavorable DFM compromises due to PCB routing, making the footprint easily manufacturable but without good connector support. That's why I added those dogbone reliefs which in practice did allow the connector to be well supported against side to side motion. I also added silkscreen to the area of the connector with ground contacts.</p><p>While those are unlikely to make contact with the PCB due to their position, this adds an additional layer of protection against short circuits. Want a really supported connector (for up and down motion)? Just add 0.3mm thick metal on either side, where the silkscreen is. The repo has a CC0 license and includes KiCAD and EasyEDA footprints for 10 and 14 pin versions.</p><p>The 10 pin version is seen on the picture below and is a power only connector, while the 14 pin version includes USB 2.0. Make sure to use a 0.6 mm thick PCB and not to use this for a heavily used port. I'd love to see what you make with this!</p>",
+      "presentation": {
+        "date": "2025-10-25",
+        "image": "/assets/images/posts/usb-c-edge/01-pcb-type-c.jpg",
+        "alt": "PCB edge USB-C connector test board",
+        "fit": "",
+        "repo": "https://github.com/AnasMalas/pcb-edge-usb-c",
+        "relatedUrl": "/articles/usb-c-tests/",
+        "relatedLabel": "Connector reliability article",
+        "variants": {
+          "dedicated": {
+            "desktop": {
+              "titlePlacement": "outside",
+              "imageFit": "contain",
+              "cropPosition": "center",
+              "imageShape": "natural"
+            }
+          },
+          "shared": {
+            "desktop": {
+              "titlePlacement": "fade",
+              "imageFit": "contain",
+              "cropPosition": "center",
+              "imageShape": "standard"
+            }
+          }
+        }
+      }
+    },
+    "circuit-protection": {
+      "title": "Let's go on a journey and look at different types of circuit protection!",
+      "bodyHtml": "<p class=\"post-excerpt\">“Welcome, Electron! I didn’t expect you coming this way. This is the positive input to the circuit… Tell you what, youre here now, so please have a seat in our little waiting lounge. We don’t normally let electrons this way, but we might be able to work some leakage out”</p><p>That’s the story of Edison, who goes by Ed, an electron that’s now stuck at the parasitic capacitance of an input protection circuit. In an ideal world, the user wouldn’t have reversed the voltage to the circuit and sent Ed the wrong way. But things go wrong all the time, and while Ed and his friends mean well, they could do a lot of damage if allowed to go through.</p><p>Circuit protection is a field that looked easy enough to me from the outside, but I found that there are subtle differences in capabilities that can make or break it, depending on your circuit's needs. So, what might your circuit need?</p><p>- You might need Reverse Current Protection (RCP). A charger port shouldn’t be live, and a series diode could solve this if you can tolerate the voltage drop and power dissipation. When you need more current or less voltage drop, you can use an ideal diode controller chip, a type of Power Management IC (PMIC).</p><p>- You might need Reverse Polarity Protection (RPP). A high side PMOS circuit works, though you might need to use an NMOS for better performance. In that case, you could use a high side NMOS with a PMIC that provides RPP by using a charge pump. A low side NMOS could do the job, but cutting ground is risky.</p><p>- Some applications need both, others require one but not the other. If your user can access the battery connector, you might want RPP without RCP to enable battery charging. Some RCP circuits cannot handle reverse polarity themselves.</p><p>A PMIC can provide more than just RPP and RCP. Here are some useful features that you might also want, or which you might want to avoid if they would interfere with the intended circuit function:</p><p>- Load power switching</p><p>- Over current protection (OCP)</p><p>- Shortcircuit protection (which may not be covered adequately by OCP)</p><p>- Soft start (for high circuit capacitance or when slew rate control is needed)</p><p>- Overvoltage protection (OVP), as either a lockout that disconnects the output or a surge clamp that attempts to keep the lights on</p><p>- Undervoltage lockout (UVLO)</p><p>- Automotive load dump protection</p><p>It’s important to not just take the specs at face value, always evaluate how the protection works and acts, especially in context of your circuit. For example, downstream inductance may necessitate a reverse clamp diode on the PMIC output. Leakage is another thing to watch out for, on just 60 uA of Schottky leakage, I had a high efficiency LED light up brightly! It’s a funny problem to have from such a small amount of Ed’s friends, but it could be worse!</p><p>All writing and information is mine, no AI here. let me know if I missed anything!</p>",
+      "presentation": {
+        "date": "2026-05-09",
+        "image": "/assets/images/posts/circuit-protection/01-protection-ic-comparison.jpg",
+        "alt": "Comparison chart of integrated circuits that provide reverse-voltage, reverse-current, and related circuit protections",
+        "fit": "contain",
+        "repo": "",
+        "relatedUrl": "",
+        "relatedLabel": "",
+        "variants": {
+          "shared": {
+            "desktop": {
+              "titlePlacement": "outside",
+              "imageFit": "contain",
+              "cropPosition": "center",
+              "imageShape": "standard"
+            }
+          }
+        }
+      }
+    }
+  },
+  "pages": {},
+  "order": {
+    "articles": [
+      "component-keepouts",
+      "usb-c-tests",
+      "circuit-protection",
+      "return-current",
+      "return-currents",
+      "gan",
+      "pink-esd",
+      "differential-pairs",
+      "resistor-arrays",
+      "hotel-fridge",
+      "ram"
+    ],
+    "open-source": [
+      "usb-c-edge",
+      "uninterrupted-usb-pd"
+    ]
+  }
+}

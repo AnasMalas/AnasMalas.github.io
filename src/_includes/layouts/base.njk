@@ -2,25 +2,33 @@
 <html lang="{{ site.language }}" data-theme="system">
   <head>
     {% include "partials/head.njk" %}
+    <script>
+      try {
+        const savedTheme = localStorage.getItem("anas-appearance");
+        if (["system", "light", "dark"].includes(savedTheme)) document.documentElement.dataset.theme = savedTheme;
+      } catch (error) {}
+    </script>
   </head>
   <body>
     <a class="skip-link" href="#content">Skip to content</a>
     <header class="site-header">
       <div class="shell header-inner">
-        <a class="wordmark" href="/" aria-label="Anas Malas home">
-          <span class="wordmark-mark" aria-hidden="true"><i></i></span>
-          <span>{{ site.name }}</span>
+        <a class="identity" href="/" aria-label="Anas Malas home">
+          <strong>{{ site.name }}</strong>
+          <span>Electronics &amp; Mechanical Engineer</span>
         </a>
+
         <nav class="site-nav" aria-label="Primary navigation">
-          <a href="/#work">Work</a>
-          <a href="/notes/">Notes</a>
-          <a href="/#about">About</a>
-          <a href="{{ site.github }}" rel="me noopener">GitHub <span aria-hidden="true">↗</span></a>
-          <button class="theme-toggle" type="button" data-theme-toggle aria-label="Change color theme">
-            <span class="theme-toggle-icon" aria-hidden="true">◐</span>
-            <span data-theme-label>System</span>
-          </button>
+          <a{% if page.url == '/' or page.url == '/notes/' or '/notes/' in page.url or '/articles/' in page.url %} class="active"{% endif %} href="/">Articles</a>
+          <a{% if page.url == '/projects/' or '/projects/' in page.url or '/bc2/' in page.url %} class="active"{% endif %} href="/projects/">Projects</a>
+          <a{% if page.url == '/open-source/' or '/open-source/' in page.url %} class="active"{% endif %} href="/open-source/">Open source</a>
+          <a{% if page.url == '/about/' %} class="active"{% endif %} href="/about/">About</a>
         </nav>
+
+        <form class="header-search" action="/search/" method="get" role="search" data-search-form>
+          <span class="search-mark" aria-hidden="true"></span>
+          <input type="search" name="q" aria-label="Search the site" placeholder="Search everything…" autocomplete="off" data-search-input>
+        </form>
       </div>
     </header>
 
@@ -28,19 +36,21 @@
       {% block content %}{{ content | safe }}{% endblock %}
     </main>
 
-    <footer class="site-footer">
-      <div class="shell footer-inner">
-        <div>
-          <p class="footer-signoff">Built for curious engineers.</p>
-          <p class="footer-small">© {{ site.year }} {{ site.name }}. No tracking, no newsletter funnel.</p>
-        </div>
-        <div class="footer-links">
-          <a href="{{ site.github }}">GitHub</a>
-          <a href="{{ site.linkedin }}">LinkedIn</a>
-          <a href="mailto:{{ site.email }}">Email</a>
-          <a href="/feed.xml">RSS</a>
-        </div>
-      </div>
+    <footer class="site-footer shell">
+      <span>{{ site.name }} <small>© {{ site.year }}</small></span>
+      <label class="appearance-choice">
+        <span>Appearance</span>
+        <select aria-label="Appearance" data-appearance>
+          <option value="system">System</option>
+          <option value="light">Light</option>
+          <option value="dark">Dark</option>
+        </select>
+      </label>
+      <span class="footer-links">
+        <a href="{{ site.github }}" rel="me noopener">GitHub</a>
+        <a href="{{ site.linkedin }}" rel="me noopener">LinkedIn</a>
+        <a href="/feed.xml">RSS</a>
+      </span>
     </footer>
     <script src="/assets/js/theme.js" defer></script>
   </body>

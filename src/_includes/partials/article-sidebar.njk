@@ -1,0 +1,17 @@
+<aside class="reading-sidebar" aria-label="Articles">
+  <div class="sidebar-top"><h2>Articles</h2><a href="/" aria-label="View all articles">View all ↗</a></div>
+  {% for article in siteContent.articles %}
+  {% set media = presentation[article.slug] %}
+  {% if loop.index <= 3 %}
+  <a class="sidebar-project{% if not ((media.images and media.images.length) or media.image) %} sidebar-project-text{% endif %}" href="/#{{ article.slug }}">
+    {% if (media.images and media.images.length) or media.image %}
+    {% set sidebarImage = media.images[0] if media.images and media.images.length else { src: media.image, alt: media.alt } %}
+    <img src="{{ sidebarImage.src }}" alt="{{ sidebarImage.alt or '' }}" loading="lazy" decoding="async">
+    {% endif %}
+    <p>{{ (article | readingPost).lead }}</p>
+    <span aria-hidden="true">↗</span>
+  </a>
+  {% endif %}
+  {% endfor %}
+  <a class="sidebar-repo" href="/notes/">Article archive <span aria-hidden="true">↗</span></a>
+</aside>

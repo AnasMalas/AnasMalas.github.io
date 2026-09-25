@@ -6,6 +6,47 @@ module.exports = function (eleventyConfig) {
   eleventyConfig.addPassthroughCopy({ "src/favicon.svg": "favicon.svg" });
   eleventyConfig.addPassthroughCopy({ "src/CNAME": "CNAME" });
 
+  eleventyConfig.addFilter("padIndex", (value) => String(value).padStart(2, "0"));
+  eleventyConfig.addFilter("json", (value) => JSON.stringify(value));
+  eleventyConfig.addFilter("presentationVariant", (media = {}, fullPage = false, device = "desktop") => {
+    const mode = fullPage ? "dedicated" : "shared";
+    const variant = media.variants?.[mode]?.[device] || {};
+    return {
+      titlePlacement: variant.titlePlacement || media.titlePlacement || "bottom",
+      cropAspect: variant.cropAspect || (device === "mobile" ? "landscape" : "wide"),
+      cropX: Number.isFinite(Number(variant.cropX)) ? Number(variant.cropX) : 0,
+      cropY: Number.isFinite(Number(variant.cropY)) ? Number(variant.cropY) : 0,
+      cropZoom: Number.isFinite(Number(variant.cropZoom)) ? Number(variant.cropZoom) : 1,
+      cropFill: variant.cropFill === "match" ? "match" : "blank",
+      cropColor: /^#[0-9a-f]{6}$/i.test(variant.cropColor || "") ? variant.cropColor : "#252525"
+    };
+  });
+  eleventyConfig.addFilter("readingPost", (item) => {
+    const paragraphs = item.paragraphs.flatMap((paragraph) => paragraph.split(/\n+/)).filter(Boolean);
+    // Give imported runs of text readable paragraph lengths, preserving every word.
+    const readable = paragraphs.flatMap((paragraph) => {
+      if (paragraph.length < 700) return [paragraph];
+      const groups = [''];
+      for (const sentence of paragraph.split(/(?<=[.!?])\s+(?=[A-Z])/)) {
+        if (groups[groups.length - 1].length > 350) groups.push('');
+        const index = groups.length - 1;
+        groups[index] += (groups[index] ? ' ' : '') + sentence;
+      }
+      return groups;
+    });
+    return { lead: item.title || readable.shift(), body: readable };
+  });
+  eleventyConfig.addFilter("sourceLinks", (value) => {
+    const escape = (text) => String(text).replace(/[&<>"']/g, (character) => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    })[character]);
+    return String(value).split(/(https?:\/\/[^\s<>"\)]+)/g).map((part) => {
+      if (!/^https?:\/\//.test(part)) return escape(part);
+      const url = part.replace(/[.,!?:;]+$/, '');
+      return `<a href="${escape(url)}" rel="noopener">${escape(url)}</a>${escape(part.slice(url.length))}`;
+    }).join('');
+  });
+
   eleventyConfig.addFilter("readableDate", (value) => {
     if (!value) return "";
     return new Intl.DateTimeFormat("en", {

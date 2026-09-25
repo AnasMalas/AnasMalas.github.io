@@ -1,0 +1,12 @@
+{% if media.attachments and media.attachments.length %}
+<div class="post-attachments" aria-label="Post attachments">
+  {% for attachment in media.attachments %}
+    {% if attachment.type != 'image' %}
+    <a class="post-attachment" href="{{ attachment.url }}" rel="noopener">
+      {% if attachment.thumbnail %}<img src="{{ attachment.thumbnail }}" alt="{{ attachment.alt or '' }}" loading="lazy" decoding="async">{% endif %}
+      <span><small>{{ attachment.type or 'Attachment' }}</small><strong>{{ attachment.label or attachment.url }}</strong></span><span aria-hidden="true">↗</span>
+    </a>
+    {% endif %}
+  {% endfor %}
+</div>
+{% endif %}

@@ -1,0 +1,30 @@
+---
+layout: layouts/base.njk
+pagination:
+  data: siteContent.all
+  size: 1
+  alias: item
+permalink: "{{ item.fullPageUrl }}"
+eleventyComputed:
+  title: "{{ item.studio.title or item.displayTitle or item.title or item.paragraphs[0] }} — Anas Malas"
+  description: "{{ (item.studio.bodyHtml | excerpt) if item.studio.bodyHtml else item.paragraphs[0] }}"
+postPage: true
+---
+<header class="post-page-header shell">
+  <a href="{{ item.sectionUrl }}#{{ item.slug }}">← Back to {{ item.kind }}</a>
+</header>
+<div class="reading-layout post-page-layout shell">
+  <section class="article-stream" aria-label="{{ item.kind }} full page">
+    {% set postKind = item.kind %}
+    {% set fullPage = true %}
+    {% set repository = item.section == 'open-source' %}
+    {% include "partials/post-card.njk" %}
+  </section>
+  {% if item.section == 'articles' %}
+    {% include "partials/project-sidebar.njk" %}
+  {% elif item.section == 'projects' %}
+    {% include "partials/open-source-sidebar.njk" %}
+  {% else %}
+    {% include "partials/project-sidebar.njk" %}
+  {% endif %}
+</div>

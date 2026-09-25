@@ -1,0 +1,56 @@
+:root { color-scheme: light; --ui-bg: #e8ebe8; --ui-paper: #fff; --ui-ink: #202522; --ui-muted: #68706b; --ui-line: #cfd5d0; --ui-accent: #007d77; }
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body { margin: 0; overflow: hidden; background: var(--ui-bg); color: var(--ui-ink); font: 13px/1.4 "Segoe UI", Inter, system-ui, sans-serif; }
+button, input, select { font: inherit; }
+button, select { cursor: pointer; }
+button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--ui-accent); outline-offset: 2px; }
+.studio-bar { min-height: 68px; display: flex; align-items: center; gap: 16px; padding: 9px 16px; border-bottom: 1px solid var(--ui-line); background: rgb(255 255 255 / .96); box-shadow: 0 2px 12px rgb(20 28 23 / .06); }
+.studio-brand { display: flex; align-items: center; gap: 8px; color: inherit; text-decoration: none; white-space: nowrap; }
+.studio-brand strong { padding: 6px 9px; background: var(--ui-accent); color: #fff; font-size: 14px; }
+.studio-brand span { color: var(--ui-muted); font-size: 11px; }
+.format-tools { display: flex; gap: 3px; padding-left: 15px; border-left: 1px solid var(--ui-line); }
+.format-tools button { min-width: 30px; height: 31px; padding: 0 7px; border: 1px solid transparent; border-radius: 3px; background: transparent; color: var(--ui-ink); font-size: 11px; }
+.format-tools button:hover { border-color: var(--ui-line); background: #f0f2f0; }
+.layout-tools { display: flex; gap: 8px; padding-left: 13px; border-left: 1px solid var(--ui-line); }
+.layout-tools label { display: flex; align-items: center; gap: 6px; color: var(--ui-muted); font-size: 10px; text-transform: uppercase; }
+.layout-tools select { height: 31px; padding: 0 25px 0 8px; border: 1px solid var(--ui-line); border-radius: 3px; background: var(--ui-paper); color: var(--ui-ink); font-size: 11px; text-transform: none; }
+.view-switches { display: flex; gap: 4px; margin: 0 0 0 auto; padding: 0; border: 0; }
+.view-switches legend { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+.view-switches label { position: relative; }
+.view-switches input { position: absolute; opacity: 0; pointer-events: none; }
+.view-switches span { display: block; padding: 7px 8px; border: 1px solid var(--ui-line); border-radius: 3px; color: var(--ui-muted); font-size: 10px; white-space: nowrap; cursor: pointer; }
+.view-switches input:checked + span { border-color: #849c91; background: #edf3ef; color: #1e3a30; }
+.view-switches input:focus-visible + span { outline: 2px solid var(--ui-accent); outline-offset: 2px; }
+.studio-actions { display: flex; align-items: center; gap: 7px; }
+.save-state { min-width: 48px; color: var(--ui-muted); font-size: 10px; text-align: right; }
+.save-state[data-dirty="true"] { color: #9b6411; }
+.quiet-button, .primary-button { min-height: 32px; padding: 0 10px; border: 1px solid var(--ui-line); border-radius: 3px; background: var(--ui-paper); color: var(--ui-ink); }
+.primary-button { border-color: var(--ui-accent); background: var(--ui-accent); color: #fff; }
+.canvas-stage { height: calc(100vh - 68px); display: flex; align-items: flex-start; gap: 20px; overflow: auto; padding: 20px; scroll-snap-type: x proximity; }
+.canvas-card { flex: 0 0 auto; display: grid; grid-template-rows: 39px minmax(0, 1fr); overflow: hidden; border: 1px solid #bcc4be; border-radius: 8px; background: #fff; box-shadow: 0 8px 30px rgb(22 31 25 / .1); scroll-snap-align: start; }
+.canvas-card > header { display: flex; align-items: center; justify-content: space-between; padding: 0 12px; border-bottom: 1px solid var(--ui-line); background: #f8f9f8; }
+.canvas-card > header span { display: flex; align-items: center; gap: 7px; font-size: 11px; font-weight: 600; }
+.canvas-card > header i { width: 7px; height: 7px; border: 1px solid #afb6b1; border-radius: 50%; background: #fff; }
+.dark-card > header i { background: #252525; }
+.canvas-card > header small { color: var(--ui-muted); font-size: 10px; }
+.desktop-card { width: 720px; height: 579px; }
+.desktop-viewport { width: 720px; height: 540px; overflow: hidden; background: #fff; }
+.desktop-viewport iframe { width: 1200px; height: 900px; border: 0; transform: scale(.6); transform-origin: left top; }
+.phone-card { width: 414px; height: 897px; border-radius: 24px; border-width: 7px; border-color: #303531; }
+.phone-card > header { border-radius: 17px 17px 0 0; }
+.phone-viewport { width: 400px; height: 844px; overflow: hidden; background: #fff; }
+.phone-viewport iframe { width: 390px; height: 844px; margin-left: 5px; border: 0; }
+.details-dialog { width: min(540px, calc(100% - 32px)); padding: 0; border: 1px solid var(--ui-line); border-radius: 8px; background: var(--ui-paper); color: var(--ui-ink); box-shadow: 0 20px 80px rgb(0 0 0 / .23); }
+.details-dialog::backdrop { background: rgb(20 26 22 / .48); backdrop-filter: blur(2px); }
+.dialog-shell > header { display: flex; justify-content: space-between; align-items: flex-start; padding: 18px 20px; border-bottom: 1px solid var(--ui-line); }
+.dialog-shell > header div { display: grid; gap: 3px; }
+.dialog-shell > header span { color: var(--ui-muted); font-size: 11px; }
+.dialog-shell > header button { padding: 0; border: 0; background: transparent; color: var(--ui-muted); font-size: 25px; line-height: 1; }
+.dialog-fields { display: grid; gap: 13px; padding: 20px; }
+.dialog-fields label { display: grid; grid-template-columns: 135px 1fr; align-items: center; gap: 13px; }
+.dialog-fields label > span { color: var(--ui-muted); font-size: 11px; }
+.dialog-fields input, .dialog-fields select { width: 100%; padding: 8px 9px; border: 1px solid var(--ui-line); border-radius: 3px; background: var(--ui-paper); color: var(--ui-ink); }
+.dialog-shell > footer { display: flex; justify-content: space-between; padding: 14px 20px; border-top: 1px solid var(--ui-line); }
+@media (max-width: 1100px) { .studio-bar { flex-wrap: wrap; } .canvas-stage { height: calc(100vh - 109px); } .view-switches { margin-left: 0; } .studio-actions { margin-left: auto; } }
+@media (max-width: 700px) { body { overflow: auto; } .studio-bar { position: sticky; z-index: 10; top: 0; } .format-tools { order: 3; width: 100%; padding: 7px 0 0; border: 0; border-top: 1px solid var(--ui-line); } .layout-tools { margin-left: auto; } .view-switches { order: 4; } .studio-actions { order: 5; } .canvas-stage { height: calc(100vh - 150px); } }

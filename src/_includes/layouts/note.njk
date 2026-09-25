@@ -7,8 +7,8 @@
   <header class="note-hero shell reading-width">
     <a class="back-link" href="/notes/">← All notes</a>
     <p class="eyebrow"><span class="status-dot" aria-hidden="true"></span>{{ tags[0] or "Engineering note" }}</p>
-    <h1 class="note-title p-name" itemprop="headline">{{ title }}</h1>
-    <p class="note-dek" itemprop="description">{{ description }}</p>
+    {% if title %}<h1 class="note-title p-name" itemprop="headline">{{ title }}</h1>{% endif %}
+    {% if description %}<p class="note-dek" itemprop="description">{{ description }}</p>{% endif %}
     <div class="note-meta">
       <time class="dt-published" datetime="{{ date | isoDate }}" itemprop="datePublished">{{ date | readableDate }}</time>
       <span aria-hidden="true">·</span>

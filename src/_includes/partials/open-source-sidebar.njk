@@ -1,0 +1,15 @@
+<aside class="reading-sidebar" aria-label="Open source">
+  <div class="sidebar-top"><h2>Open source</h2><a href="/open-source/" aria-label="View all open source work">View all ↗</a></div>
+  {% for project in siteContent.openSource %}
+  {% set media = presentation[project.slug] %}
+  <a class="sidebar-project{% if not ((media.images and media.images.length) or media.image) %} sidebar-project-text{% endif %}" href="/open-source/#{{ project.slug }}">
+    {% if (media.images and media.images.length) or media.image %}
+    {% set sidebarImage = media.images[0] if media.images and media.images.length else { src: media.image, alt: media.alt } %}
+    <img src="{{ sidebarImage.src }}" alt="{{ sidebarImage.alt or '' }}" loading="lazy" decoding="async">
+    {% endif %}
+    <div class="sidebar-project-meta"><span class="post-kind">Open source</span>{% if media.date %}<time datetime="{{ media.date }}">{{ media.date | readableDate }}</time>{% endif %}</div>
+    <p>{{ media.displayTitle or (project | readingPost).lead }}</p>
+    <span class="sidebar-project-arrow" aria-hidden="true">↗</span>
+  </a>
+  {% endfor %}
+</aside>

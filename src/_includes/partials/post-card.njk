@@ -1,0 +1,87 @@
+{% set post = item | readingPost %}
+{% set media = presentation[item.slug] %}
+{% set hasImages = (media.images and media.images.length) or media.image %}
+{% set primaryImage = media.images[0].src if media.images and media.images.length else media.image %}
+{% set hasBody = item.studio.bodyHtml or post.body.length or media.displayTitle %}
+{% set isRepository = repository or item.section == 'open-source' %}
+{% set isFullPage = fullPage or false %}
+{% set isPlaceholder = item.placeholder or false %}
+{% set isDisclosure = not isRepository and not isFullPage and not isPlaceholder %}
+{% set isExpanded = isRepository or isFullPage or isPlaceholder or media.defaultExpanded %}
+{% set displayKind = item.kind or media.postKind or postKind %}
+{% set displayTitle = item.studio.title or media.displayTitle or post.lead %}
+{% set desktopView = media | presentationVariant(isFullPage, 'desktop') %}
+{% set mobileView = media | presentationVariant(isFullPage, 'mobile') %}
+<article class="post-card{% if hasImages %} post-card-photo post-title-desktop-{{ desktopView.titlePlacement }} post-title-mobile-{{ mobileView.titlePlacement }} post-crop-aspect-desktop-{{ desktopView.cropAspect }} post-crop-aspect-mobile-{{ mobileView.cropAspect }} post-crop-fill-desktop-{{ desktopView.cropFill }} post-crop-fill-mobile-{{ mobileView.cropFill }}{% else %} post-card-text{% endif %}{% if isRepository %} repository-card{% endif %}{% if isFullPage %} post-card-full{% endif %}{% if isPlaceholder %} post-card-placeholder{% endif %}" id="{{ item.slug }}"{% if isDisclosure %} data-disclosure{% endif %} data-open="{{ 'true' if isExpanded else 'false' }}"{% if hasImages %} style="--crop-desktop-x: {{ desktopView.cropX }}%; --crop-desktop-y: {{ desktopView.cropY }}%; --crop-desktop-zoom: {{ desktopView.cropZoom }}; --crop-desktop-color: {{ desktopView.cropColor }}; --crop-mobile-x: {{ mobileView.cropX }}%; --crop-mobile-y: {{ mobileView.cropY }}%; --crop-mobile-zoom: {{ mobileView.cropZoom }}; --crop-mobile-color: {{ mobileView.cropColor }};"{% endif %}>
+  <div class="post-visual">
+    {% include "partials/post-media.njk" %}
+    {% if hasImages %}
+      <div class="post-title-block post-title-block-overlay">
+        <div class="post-meta"><span class="post-kind">{{ displayKind }}</span>{% if media.date %}<time datetime="{{ media.date }}">{{ media.date | readableDate }}</time>{% endif %}</div>
+        {% if isFullPage %}
+          <h1 class="post-lead">{{ displayTitle }}</h1>
+        {% elif media.displayTitle or item.title %}
+          <h2 class="post-lead">{{ displayTitle }}</h2>
+        {% else %}
+          <p class="post-lead">{{ displayTitle }}</p>
+        {% endif %}
+      </div>
+    {% endif %}
+  </div>
+  <div class="post-surface">
+    {% if hasImages %}
+      <div class="post-title-block post-title-block-outside">
+        <div class="post-meta"><span class="post-kind">{{ displayKind }}</span>{% if media.date %}<time datetime="{{ media.date }}">{{ media.date | readableDate }}</time>{% endif %}</div>
+        {% if isFullPage %}
+          <h1 class="post-lead">{{ displayTitle }}</h1>
+        {% elif media.displayTitle or item.title %}
+          <h2 class="post-lead">{{ displayTitle }}</h2>
+        {% else %}
+          <p class="post-lead">{{ displayTitle }}</p>
+        {% endif %}
+      </div>
+    {% else %}
+      <div class="post-title-block post-title-block-outside">
+        <div class="post-meta"><span class="post-kind">{{ displayKind }}</span>{% if media.date %}<time datetime="{{ media.date }}">{{ media.date | readableDate }}</time>{% endif %}</div>
+        {% if isFullPage %}
+          <h1 class="post-lead">{{ displayTitle }}</h1>
+        {% elif media.displayTitle or item.title %}
+          <h2 class="post-lead">{{ displayTitle }}</h2>
+        {% else %}
+          <p class="post-lead">{{ displayTitle }}</p>
+        {% endif %}
+      </div>
+    {% endif %}
+    <div class="reading-anchor" aria-hidden="true"></div>
+    {% if hasBody %}
+    <div class="post-body" id="body-{{ item.slug }}"{% if isDisclosure %} data-disclosure-body{% endif %}>
+      {% if item.studio.bodyHtml %}
+        {{ item.studio.bodyHtml | safe }}
+      {% else %}
+        {% if media.displayTitle %}<p class="post-excerpt">{{ post.lead | sourceLinks | safe }}</p>{% endif %}
+        {% for paragraph in post.body %}<p{% if loop.first and not media.displayTitle %} class="post-excerpt"{% endif %}>{{ paragraph | sourceLinks | safe }}</p>{% endfor %}
+      {% endif %}
+    </div>
+    {% endif %}
+    {% include "partials/post-secondary-media.njk" %}
+    {% include "partials/post-attachments.njk" %}
+    <footer class="post-actions">
+      <span class="post-primary-actions">
+        {% if hasBody and isDisclosure %}
+        <button type="button" data-disclosure-button aria-expanded="{{ 'true' if isExpanded else 'false' }}" aria-controls="body-{{ item.slug }}" data-expand-label="{{ 'Expand project' if displayKind == 'Project' else 'Expand article' }}" data-collapse-label="{{ 'Collapse project' if displayKind == 'Project' else 'Collapse article' }}">
+          <span data-disclosure-label>{{ ('Collapse project' if displayKind == 'Project' else 'Collapse article') if isExpanded else ('Expand project' if displayKind == 'Project' else 'Expand article') }}</span><span data-disclosure-icon aria-hidden="true">{{ '−' if isExpanded else '+' }}</span>
+        </button>
+        {% endif %}
+        {% if isRepository and media.repo %}
+        <a class="repo-button" href="{{ media.repo }}" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .8a11.4 11.4 0 0 0-3.6 22.2c.6.1.8-.3.8-.6v-2.2c-3.3.7-4-1.4-4-1.4-.6-1.4-1.4-1.8-1.4-1.8-1.1-.8.1-.8.1-.8 1.2.1 1.9 1.3 1.9 1.3 1.1 1.9 2.9 1.3 3.6 1 .1-.8.4-1.3.8-1.6-2.7-.3-5.5-1.3-5.5-5.9 0-1.3.5-2.4 1.2-3.2-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.3 1.2a11.2 11.2 0 0 1 6 0C17.5 4.3 18.5 4.6 18.5 4.6c.6 1.7.2 2.9.1 3.2.8.8 1.2 1.9 1.2 3.2 0 4.6-2.8 5.6-5.5 5.9.4.4.8 1.1.8 2.2v3.3c0 .4.2.7.8.6A11.4 11.4 0 0 0 12 .8Z"/></svg>View on GitHub <span aria-hidden="true">↗</span></a>
+        {% endif %}
+        {% if not isFullPage %}<a class="post-mode-link" href="{{ item.fullPageUrl }}">Full page <span aria-hidden="true">↗</span></a>{% endif %}
+        <button class="post-share" type="button" data-share-button data-share-url="{{ item.fullPageUrl }}" data-share-title="{{ displayTitle | escape }}"><span data-share-label>Share</span><span aria-hidden="true">↗</span></button>
+      </span>
+      <span class="post-context-links">
+        {% if media.relatedUrl %}<a class="post-source" href="{{ media.relatedUrl }}">{{ media.relatedLabel }} <span aria-hidden="true">↗</span></a>{% endif %}
+        {% if item.source or media.sourceUrl %}<a class="post-source" href="{{ item.source or media.sourceUrl }}" rel="noopener" aria-label="View original post on LinkedIn">LinkedIn <span aria-hidden="true">↗</span></a>{% endif %}
+      </span>
+    </footer>
+  </div>
+</article>

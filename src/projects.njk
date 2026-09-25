@@ -1,0 +1,19 @@
+---
+layout: layouts/base.njk
+title: Projects — Anas Malas
+description: Hardware projects and engineering investigations by Anas Malas.
+permalink: /projects/
+---
+<header class="page-intro shell">
+  <h1>Projects</h1>
+  <p>Hardware, tools, and investigations.</p>
+</header>
+<div class="reading-layout shell">
+  <section class="article-stream" aria-label="Projects" data-article-stream>
+    {% set postKind = 'Project' %}
+    {% for item in siteContent.projects %}
+      {% include "partials/post-card.njk" %}
+    {% endfor %}
+  </section>
+  {% include "partials/open-source-sidebar.njk" %}
+</div>
