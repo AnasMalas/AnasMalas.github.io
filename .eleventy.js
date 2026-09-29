@@ -5,6 +5,10 @@ module.exports = function (eleventyConfig) {
   eleventyConfig.addPassthroughCopy({ "src/assets": "assets" });
   eleventyConfig.addPassthroughCopy({ "src/favicon.svg": "favicon.svg" });
   eleventyConfig.addPassthroughCopy({ "src/CNAME": "CNAME" });
+  // The BCv2 console is a standalone app, copied in by the firmware repo's
+  // web-console/scripts/publish-site.ps1. Serve it as-is, not as templates.
+  eleventyConfig.addPassthroughCopy({ "src/bcv2/console": "bcv2/console" });
+  eleventyConfig.ignores.add("src/bcv2/console/**");
 
   eleventyConfig.addFilter("padIndex", (value) => String(value).padStart(2, "0"));
   eleventyConfig.addFilter("json", (value) => JSON.stringify(value));

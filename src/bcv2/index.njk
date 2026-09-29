@@ -1,0 +1,67 @@
+---
+layout: layouts/base.njk
+title: The Negotiator II · Anas Malas
+description: How to use BCv2, my USB PD business card power supply.
+permalink: /bcv2/
+---
+{% set studioPage = studioContent.pages.bcv2 %}
+<article class="note-page bcv2-guide">
+  <header class="note-hero shell reading-width">
+    <a class="back-link" href="/projects/">← Projects</a>
+    <p class="eyebrow"><span class="status-dot" aria-hidden="true"></span>BCv2</p>
+    <h1 class="note-title">{{ studioPage.title if studioPage and studioPage.title else 'The Negotiator II' }}</h1>
+    <p class="note-dek">My second PCB business card, and a USB PD power supply you can carry anywhere.</p>
+  </header>
+
+  <div class="note-body reading-width">
+  {% if studioPage and studioPage.bodyHtml %}
+    {{ studioPage.bodyHtml | safe }}
+  {% else %}
+    <p>So you got one of my business cards, awesome! Its also a tiny USB PD power supply, here's how to use it.</p>
+
+    <h2>What can it do?</h2>
+    <ul>
+      <li><strong>See what your charger offers, at a glance.</strong> Plug it into a USB-C charger and the bar lights up every voltage it can give you, from 5 to 48V. The mode lights show which PD modes it supports (PDO, PPS, SPR AVS and EPR AVS), so in a few seconds you know if that charger is any good.</li>
+      <li><strong>Power your projects.</strong> Pick a voltage, press APPLY and the card negotiates it with the charger, then press LOAD to send it to your load. That makes it a very slim and portable power supply, all you need is a PD charger and a cable!</li>
+    </ul>
+
+    <h2>How to use it</h2>
+    <ul>
+      <li>Plug a USB PD charger into the power port. The display shows the voltage, current and power going out, and the bar shows what the charger offers.</li>
+      <li>Press V/A to choose voltage or current, then F+ and F- for small steps or C+ and C- for big ones. The new value blinks until you press APPLY.</li>
+      <li>Dont want to press APPLY every time? hold it to turn on Auto Apply, now every change goes through right away. Hold it again to turn it off.</li>
+      <li>MODE picks between AUTO, PDO, PPS, SPR AVS and EPR AVS. Tap it once to see what the charger has, tap again to choose, then press APPLY (or just wait 5 seconds). If the new mode cant do your voltage, the card goes to the next one down, never higher.</li>
+      <li>Hold MODE to turn EPR on or off, that's where 28V and up live.</li>
+      <li>LOAD turns your output on and off. If LOAD blinks, the output cant turn on yet, or the change you're making will turn it off when you apply it.</li>
+      <li>Hold V/A for a second to lock the buttons so nothing changes in your pocket, and hold it again to unlock. LOAD still works while its locked.</li>
+      <li>THERM LIM means the card is dimming its display to keep its regulator happy, which happens at higher voltages. Nothing is wrong.</li>
+      <li>If WARN blinks, its spelling a letter in Morse code. R means the charger said no, S means your settings couldnt be saved, T means the power dropped out, and F means the card lost power a few times while restoring your last setting so it started with a safer one (press APPLY to try again).</li>
+    </ul>
+
+    <h2>Chargers are all different</h2>
+    <p>Not every charger offers every mode, and some just dont play nice with it. If something doesnt work or acts weird, tell you what, try another cable first - then another charger.</p>
+    <p>If the bar only shows 5V, you arent using a full PD power supply, so thats all the card can get. To unlock everything use a USB PD charger or powerbank thats atleast 20W, laptop chargers are usually the best ones. For 28V and up you'll need an EPR charger (these are usually 140W or more) and a 240W cable.</p>
+
+    <h2>The console</h2>
+    <p>The card has a second USB port for data only. Keep your charger in the power port, plug the data port into your computer, then open <a href="/bcv2/console/">anasmalas.com/bcv2/console</a> in Chrome or Edge and press Connect. It works in Chrome on Android too.</p>
+    <p>In there you can see everything your charger offers in detail, request exact voltages, and watch live graphs of voltage, current and power. It also tells you if theres newer firmware for your card and how to update it.</p>
+    <p>If your card restarts on its own, the console reads its black box when it reconnects. Thats a small log of what went wrong, and it stays on your computer unless you turn on bug reports.</p>
+
+    <h2 id="update">Updating the firmware</h2>
+    <ol>
+      <li><a href="/assets/bcv2/firmware/bcv2-rev1-product-latest.bin">Download the latest firmware</a>.</li>
+      <li>Get a flashing tool: <a href="https://www.wch-ic.com/downloads/WCHISPTool_Setup_exe.html" rel="noopener">WCHISPTool</a> on Windows, or <a href="https://github.com/ch32-rs/wchisp" rel="noopener">wchisp</a> on Mac and Linux.</li>
+      <li>You need both USB ports for this. Unplug everything, then plug the data port into your computer first. It only carries data, so the card stays off.</li>
+      <li>Hold BOOT and plug in the power port, then let go. If the display comes on, it didnt make it into the bootloader. Unplug the power and try again, pressing BOOT harder.</li>
+      <li>In WCHISPTool pick CH32X035, choose the file and press Download. With wchisp, run <code>wchisp flash</code> with the file.</li>
+      <li>Unplug the power, plug it back in, and thats it! The console should now say you're on the latest version.</li>
+    </ol>
+
+    <h2 id="privacy">Bug reports and your data</h2>
+    <p>The console runs in your browser and it doesnt send me anything, unless you tick "Share anonymous bug reports" or send a report yourself. You can turn it off any time.</p>
+    <p>A report has the firmware version, your browser and system (like Chrome 140 on Windows), the console log, the black box, and whatever you wrote. Your card's ID is removed before anything is sent, and your IP address isnt stored. Please dont write personal info in there, I dont need it!</p>
+    <p>The only other thing the console asks this site for is the latest firmware version.</p>
+    <p>Have fun with it, and tag me when you make something cool :)</p>
+  {% endif %}
+  </div>
+</article>

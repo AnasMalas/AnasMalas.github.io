@@ -2,9 +2,9 @@
 const studioContent = require('./studioContent.json');
 
 const basePresentation = {
-  'bc2': {
+  'bcv2': {
     section: 'project',
-    displayTitle: 'BC2'
+    displayTitle: 'The Negotiator II'
   },
   'component-keepouts': {
     date: '2024-11-02',

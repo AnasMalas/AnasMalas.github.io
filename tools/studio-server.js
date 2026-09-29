@@ -85,8 +85,7 @@ function loadSiteModel() {
     posts,
     pages: [
       { id: 'about', type: 'page', group: 'pages', kind: 'Page', title: 'About', url: '/about/' },
-      { id: 'bc2', type: 'page', group: 'projects', kind: 'Project', title: 'BC2', url: '/bc2/' },
-      { id: 'bc2Console', type: 'page', group: 'pages', kind: 'Page', title: 'BC2 Console', url: '/bc2/console/' }
+      { id: 'bcv2', type: 'page', group: 'projects', kind: 'Project', title: 'The Negotiator II', url: '/bcv2/' }
     ]
   };
 }
@@ -219,7 +218,7 @@ async function api(request, response, url) {
             variants: cleanVariants(input.presentation?.variants)
           }
         };
-      } else if (input.type === 'page' && ['about', 'bc2', 'bc2Console'].includes(input.id)) {
+      } else if (input.type === 'page' && ['about', 'bcv2'].includes(input.id)) {
         content.pages[input.id] = {
           ...(content.pages[input.id] || {}),
           title: String(input.title || '').trim(),

@@ -1,0 +1,11 @@
+{
+  "schema": 1,
+  "product": {
+    "latest": "0x0105003B",
+    "date": "2026-09-29",
+    "notes": "",
+    "download": "https://anasmalas.com/assets/bcv2/firmware/bcv2-rev1-product-0105003B.bin",
+    "sha256": "c0b85aadc5e0d3211fb1970b067cc64d4ccc11c6a5f0cce04147465918885444",
+    "diagnostic": ["0x01050014", "0x01050026", "0x01050028", "0x0105002A", "0x0105002C", "0x0105002E", "0x01050030", "0x01050032"]
+  }
+}

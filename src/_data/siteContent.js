@@ -37,17 +37,17 @@ const linkedProjects = linkedin.projects
   .map((item) => decorate(item, 'projects', 'Project'));
 
 const specialProjects = [{
-  slug: 'bc2',
+  slug: 'bcv2',
   title: '',
-  paragraphs: ['Coming soon'],
+  paragraphs: ['My second PCB business card, and a USB PD power supply you can carry anywhere.'],
   source: '',
   section: 'projects',
   kind: 'Project',
-  displayTitle: studioContent.pages?.bc2?.title || 'BC2',
-  fullPageUrl: '/bc2/',
+  displayTitle: studioContent.pages?.bcv2?.title || 'The Negotiator II',
+  fullPageUrl: '/bcv2/',
   sectionUrl: '/projects/',
   placeholder: true,
-  studio: studioContent.pages?.bc2 || null
+  studio: studioContent.pages?.bcv2 || null
 }];
 
 const projects = storedOrder([...linkedProjects, ...specialProjects], 'projects');

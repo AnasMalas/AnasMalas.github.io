@@ -1,0 +1,28 @@
+---
+layout: layouts/base.njk
+title: Page not found · Anas Malas
+description: This page does not exist.
+permalink: /404.html
+eleventyExcludeFromCollections: true
+---
+<script>
+  // GitHub Pages paths are case sensitive, so /BCv2, /BCV2/Console and the
+  // older /bc2 addresses land here. Send them to the real pages.
+  (() => {
+    const routes = {
+      "/bcv2": "/bcv2/",
+      "/bcv2/console": "/bcv2/console/",
+      "/bc2": "/bcv2/",
+      "/bc2/console": "/bcv2/console/",
+    };
+    const path = location.pathname.toLowerCase().replace(/\/index\.html$/, "").replace(/\/+$/, "");
+    const target = routes[path];
+    if (target && target !== location.pathname) location.replace(target + location.search + location.hash);
+  })();
+</script>
+<main class="placeholder-page shell">
+  <p class="post-kind">404</p>
+  <h1>This page doesnt exist</h1>
+  <p>Looking for the business card? It lives at <a href="/bcv2/">anasmalas.com/bcv2</a>.</p>
+  <a href="/">← Back home</a>
+</main>

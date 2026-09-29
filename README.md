@@ -30,7 +30,16 @@ The imported reading pages use two data files:
 - `src/_data/linkedin.js` contains the original post wording.
 - `src/_data/presentation.js` controls dates, section placement, display titles, images, repository links, and related-page links.
 
-Page copy and special routes live in their matching templates, such as `src/about.njk`, `src/bc2.njk`, and `src/bc2-console.njk`.
+Page copy and special routes live in their matching templates, such as `src/about.njk` and `src/bcv2/index.njk`.
+
+## BCv2 pages
+
+- `/bcv2/` is the business card guide (`src/bcv2/index.njk`), editable in Studio.
+- `/bcv2/console/` is the console app in `src/bcv2/console/`. It is copied in by the firmware repo's `web-console/scripts/publish-site.ps1`; do not edit it here.
+- `/bcv2/firmware.json` tells the console which firmware is newest. It is built from `src/_data/bcv2Firmware.json`.
+- `src/404.njk` sends any capitalization of `/bcv2` and `/bcv2/console`, and the old `/bc2` addresses, to the right page.
+
+To publish new firmware: copy the product `.bin` into `src/assets/bcv2/firmware/` twice, as `bcv2-rev1-product-<build>.bin` and as `bcv2-rev1-product-latest.bin`, then update `latest`, `date`, `download`, and `sha256` in `src/_data/bcv2Firmware.json`. Add diagnostic builds to `diagnostic` so the console does not offer them an update.
 
 Put images and downloadable files under `src/assets/`. They are copied into the built site and hosted by GitHub Pages. Reference them with a root-relative path such as `/assets/images/posts/my-article/photo.jpg`; no external image host is needed.
 

@@ -9,8 +9,7 @@ eleventyExcludeFromCollections: true
   <url><loc>{{ site.url }}/open-source/</loc></url>
   <url><loc>{{ site.url }}/about/</loc></url>
   <url><loc>{{ site.url }}/notes/</loc></url>
-  <url><loc>{{ site.url }}/bc2/</loc></url>
-  <url><loc>{{ site.url }}/bc2/console/</loc></url>
+  <url><loc>{{ site.url }}/bcv2/</loc></url>
   {% for item in siteContent.all %}<url><loc>{{ site.url }}{{ item.fullPageUrl }}</loc></url>{% endfor %}
   {% for note in collections.notes %}<url><loc>{{ site.url }}{{ note.url }}</loc><lastmod>{{ note.date | isoDate }}</lastmod></url>{% endfor %}
 </urlset>

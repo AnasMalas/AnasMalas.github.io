@@ -528,8 +528,8 @@
       };
     }
     if (selected.id === 'about') return { title: null, body: document.querySelector('.about-page') };
-    if (selected.id === 'bc2' || selected.id === 'bc2Console') {
-      return { title: document.querySelector('.placeholder-page h1'), body: document.querySelector('.studio-page-copy') };
+    if (selected.id === 'bcv2') {
+      return { title: document.querySelector('.bcv2-guide .note-title'), body: document.querySelector('.bcv2-guide .note-body') };
     }
     return { title: null, body: null };
   }
