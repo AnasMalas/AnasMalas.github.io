@@ -22,35 +22,55 @@ permalink: /bcv2/
     {{ studioPage.bodyHtml | safe }}
   {% else %}
     <p>So you got one of my business cards, awesome! Its also a tiny USB PD power supply, here's how to use it.</p>
+    <p>Want to see everything its doing? Plug it into your computer and open the <a href="/bcv2/console/">console</a>.</p>
+    <p><em>This page is a work in progress, so check back again soon!</em></p>
 
     <h2>What can it do?</h2>
-    <ul>
-      <li><strong>See what your charger offers, at a glance.</strong> Plug it into a USB-C charger and the SOURCE CAPABILITY bar lights up every voltage it can give you, from 5 to 48V. The mode lights show which PD modes it supports (PDO, PPS, SAVS and EAVS), so in a few seconds you know if that charger is any good.</li>
-      <li><strong>Power your projects.</strong> Pick a voltage, press APPLY and the card negotiates it with the charger, then press LOAD ON/OFF to send it to your load. That makes it a very slim and portable power supply, all you need is a PD charger and a cable!</li>
-    </ul>
+    <h3>See what your charger offers</h3>
+    <p>Plug it into a USB-C charger and the SOURCE CAPABILITY bar lights up every voltage it can give you, from 5 to 48V. The mode lights show which PD modes it supports (PDO, PPS, SAVS and EAVS). In a few seconds you know if that charger is any good.</p>
+    <h3>Power your projects</h3>
+    <p>Pick a voltage, press APPLY and the card negotiates it with the charger. Then press LOAD ON/OFF to send it to your load. A very slim and portable power supply, all you need is a PD charger and a cable!</p>
 
     <h2>How to use it</h2>
+    <h3>Plug it in</h3>
+    <p>Plug a USB PD charger into the POWER port. The displays show the voltage, current and power going out, and the bar shows what the charger offers.</p>
+    <h3>Hook up your load</h3>
+    <p>Use the WIRE WEDGE (wedge the wires in, or clip a crocodile clip on it), banana plugs, or the 0.1" headers. Keep your load's capacitance under 90uF, its printed on the card too.</p>
+    <h3>Change the voltage or current</h3>
+    <p>Press V/A to choose voltage or current, then FINE + and FINE - for small steps or COARSE + and COARSE - for big ones. The new value blinks until you press APPLY.</p>
+    <p>Dont want to press APPLY every time? hold it for AUTO APPLY, now every change goes through right away. Hold it again to turn it off.</p>
+    <h3>Pick a mode</h3>
+    <p>MODE picks between AUTO, PDO, PPS, SAVS and EAVS. Tap it once to see what the charger has, tap again to choose, then press APPLY (or just wait 5 seconds). If the new mode cant do your voltage, the card goes to the next one down, never higher.</p>
+    <p>Hold MODE to turn EPR on or off, that's where 28V and up live.</p>
+    <h3>Turn the output on</h3>
+    <p>LOAD ON/OFF turns your output on and off, and LOAD EN lights up when its on. If LOAD EN blinks, the output cant turn on yet, or the change you're making will turn it off when you apply it.</p>
+    <h3>Lock the buttons</h3>
+    <p>Hold V/A for a second so nothing changes in your pocket, and hold it again to unlock. LOAD ON/OFF still works while its locked.</p>
+    <h3>What the lights mean</h3>
+    <p>THERM LIM means the card is dimming its display to keep its regulator happy, which happens at higher voltages. Nothing is wrong.</p>
+    <p>If WARNING blinks, its spelling a letter in Morse code:</p>
     <ul>
-      <li>Plug a USB PD charger into the POWER port. The displays show the voltage, current and power going out, and the bar shows what the charger offers.</li>
-      <li>Hook up your load with the WIRE WEDGE (wedge the wires in, or clip a crocodile clip on it), banana plugs, or the 0.1" headers. Keep your load's capacitance under 90uF, its printed on the card too.</li>
-      <li>Press V/A to choose voltage or current, then FINE + and FINE - for small steps or COARSE + and COARSE - for big ones. The new value blinks until you press APPLY.</li>
-      <li>Dont want to press APPLY every time? hold it for AUTO APPLY, now every change goes through right away. Hold it again to turn it off.</li>
-      <li>MODE picks between AUTO, PDO, PPS, SAVS and EAVS. Tap it once to see what the charger has, tap again to choose, then press APPLY (or just wait 5 seconds). If the new mode cant do your voltage, the card goes to the next one down, never higher.</li>
-      <li>Hold MODE to turn EPR on or off, that's where 28V and up live.</li>
-      <li>LOAD ON/OFF turns your output on and off, and LOAD EN lights up when its on. If LOAD EN blinks, the output cant turn on yet, or the change you're making will turn it off when you apply it.</li>
-      <li>Hold V/A for a second to lock the buttons so nothing changes in your pocket, and hold it again to unlock. LOAD ON/OFF still works while its locked.</li>
-      <li>THERM LIM means the card is dimming its display to keep its regulator happy, which happens at higher voltages. Nothing is wrong.</li>
-      <li>If WARNING blinks, its spelling a letter in Morse code. R means the charger said no, S means your settings couldnt be saved, T means the power dropped out, and F means the card lost power a few times while restoring your last setting so it started with a safer one (press APPLY to try again).</li>
+      <li>R: the charger said no.</li>
+      <li>S: your settings couldnt be saved.</li>
+      <li>T: the power dropped out.</li>
+      <li>F: the card lost power a few times while restoring your last setting, so it started with a safer one. Press APPLY to try again.</li>
     </ul>
 
     <h2>Chargers are all different</h2>
     <p>Not every charger offers every mode, and some just dont play nice with it. If something doesnt work or acts weird, tell you what, try another cable first - then another charger.</p>
-    <p>If the bar only shows 5V, you arent using a full PD power supply, so thats all the card can get. To unlock everything use a USB PD charger or powerbank thats atleast 20W, laptop chargers are usually the best ones. For 28V and up you'll need an EPR charger (these are usually 140W or more) and a 240W cable.</p>
+    <h3>Only seeing 5V?</h3>
+    <p>Then you arent using a full PD power supply, so thats all the card can get. Use a USB PD charger or powerbank thats atleast 20W, laptop chargers are usually the best ones.</p>
+    <h3>Want 28V and up?</h3>
+    <p>You'll need an EPR charger (these are usually 140W or more) and a 240W cable.</p>
 
     <h2>The console</h2>
+    <h3>Connect</h3>
     <p>The card has a second USB port, DATA, and it only carries data. Keep your charger in POWER, plug DATA into your computer, then open <a href="/bcv2/console/">anasmalas.com/bcv2/console</a> in Chrome or Edge and press Connect. It works in Chrome on Android too.</p>
-    <p>In there you can see everything your charger offers in detail, request exact voltages, and watch live graphs of voltage, current and power. It also tells you if theres newer firmware for your card and how to update it.</p>
-    <p>If your card restarts on its own, the console reads its black box when it reconnects. Thats a small log of what went wrong, and it stays on your computer unless you turn on bug reports.</p>
+    <h3>What it does</h3>
+    <p>You can see everything your charger offers in detail, request exact voltages, and watch live graphs of voltage, current and power. It also tells you if theres newer firmware for your card and how to update it.</p>
+    <p>If your card restarts on its own, the console reads its black box when it reconnects. Thats a small log of what went wrong.</p>
+    <h3>Please turn on bug reports</h3>
+    <p>If you tick "Share anonymous bug reports", I get that black box and the log whenever something goes wrong, so I can look into your issue and fix it in the next firmware. It really helps! If its greyed out, I'm still setting it up, so check back soon.</p>
 
     <h2 id="update">Updating the firmware</h2>
     <ol>
@@ -63,9 +83,12 @@ permalink: /bcv2/
     </ol>
 
     <h2 id="privacy">Bug reports and your data</h2>
-    <p>The console runs in your browser and it doesnt send me anything, unless you tick "Share anonymous bug reports" or send a report yourself. You can turn it off any time.</p>
-    <p>A report has the firmware version, your browser and system (like Chrome 140 on Windows), the console log, the black box, and whatever you wrote. Your card's ID is removed before anything is sent, and your IP address isnt stored. Please dont write personal info in there, I dont need it!</p>
-    <p>The only other thing the console asks this site for is the latest firmware version.</p>
+    <h3>What gets sent</h3>
+    <p>Nothing, unless you tick "Share anonymous bug reports" or send a report yourself. You can turn it off any time.</p>
+    <p>A report has the firmware version, your browser and system (like Chrome 140 on Windows), the console log, the black box, and whatever you wrote.</p>
+    <h3>What doesnt</h3>
+    <p>Your card's ID is removed before anything is sent, and your IP address isnt stored. Please dont write personal info in there, I dont need it! The only other thing the console asks this site for is the latest firmware version.</p>
+
     <p>Have fun with it, and tag me when you make something cool :)</p>
   {% endif %}
   </div>
