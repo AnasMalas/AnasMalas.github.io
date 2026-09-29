@@ -164,7 +164,7 @@
     ui.optIn.checked = optedIn();
     ui.optIn.disabled = !reportingAvailable;
     ui.optInNote.textContent = !reportingAvailable
-      ? REPORT_URL === "" ? "Report service not set up yet. Reports can be saved instead."
+      ? REPORT_URL === "" ? "Not set up yet: use Report a bug, save it, and email it to the address on the card."
         : "Reports can be sent from anasmalas.com/bcv2/console. Here they can be saved."
       : ui.optIn.checked ? "On: problems are reported anonymously." : "Off: nothing is sent.";
     ui.send.disabled = !reportingAvailable;
@@ -317,7 +317,7 @@
   ui.reportButton.addEventListener("click", () => {
     ui.dialogNote.textContent = reportingAvailable
       ? "Sent anonymously: no board ID, no personal details. Please don't type any in."
-      : "Saving makes a file you can email me. The board ID is already removed.";
+      : "Save it and email the file to the address on the card (its QR code adds me to your contacts). The board ID is already removed.";
     ui.dialog.showModal();
     ui.description.focus();
   });
