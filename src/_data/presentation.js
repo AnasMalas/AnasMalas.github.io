@@ -4,7 +4,11 @@ const studioContent = require('./studioContent.json');
 const basePresentation = {
   'bcv2': {
     section: 'project',
-    displayTitle: 'The Negotiator II'
+    displayTitle: 'The Negotiator II',
+    date: '2026-09-29',
+    image: '/assets/images/posts/bcv2/01-card-on-powerbank.jpg',
+    alt: 'The Negotiator II business card powered from a power bank, with its source capability bar and displays lit',
+    fit: 'contain'
   },
   'component-keepouts': {
     date: '2024-11-02',

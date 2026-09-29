@@ -50,7 +50,7 @@ const specialProjects = [{
   studio: studioContent.pages?.bcv2 || null
 }];
 
-const projects = storedOrder([...linkedProjects, ...specialProjects], 'projects');
+const projects = storedOrder([...linkedProjects, ...specialProjects].sort(newestFirst), 'projects');
 
 const openSource = storedOrder(linkedin.projects
   .filter((item) => sectionFor(item, 'project') === 'open-source')
