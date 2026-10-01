@@ -6,10 +6,10 @@
 (() => {
   const CONSOLE_VERSION = "2026.09.29";
   const MANIFEST_URL = "https://anasmalas.com/bcv2/firmware.json";
-  // The report service's endpoint. Empty until it is deployed: reports can
-  // then only be saved or copied. Its origin must also be added to the
-  // page's connect-src (index.html and scripts/package.ps1).
-  const REPORT_URL = "";
+  // The report service (report-service/, a Worker routed on the site's own
+  // /api/*), so the page's connect-src already allows it. Empty disables
+  // sending: reports can then only be saved or copied.
+  const REPORT_URL = "https://anasmalas.com/api/report";
   const OPT_IN_KEY = "bcv2.bug-reports.opt-in";
   const QUICK_RECONNECT_MS = 3000;
   const AUTO_REPORT_GAP_MS = 60_000;
