@@ -40,7 +40,7 @@ case "$(uname -s)-$(uname -m)" in
     WCHISP_SHA256="ebbf46b0c64bb356cd58da2683c8809c50bdfe2181969f544933d24c8846f608" ;;
   *)
     echo "Sorry, there is no wchisp build for $(uname -s) $(uname -m)." >&2
-    echo "Use the manual steps on https://anasmalas.com/bcv2/#update instead." >&2
+    echo "See https://anasmalas.com/bcv2/update/ for other ways to update." >&2
     exit 1 ;;
 esac
 

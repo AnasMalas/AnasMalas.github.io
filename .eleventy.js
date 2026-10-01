@@ -1,3 +1,5 @@
+const crypto = require("node:crypto");
+const fs = require("node:fs");
 const path = require("node:path");
 const Image = require("@11ty/eleventy-img");
 
@@ -13,6 +15,12 @@ module.exports = function (eleventyConfig) {
   eleventyConfig.addPassthroughCopy({ "src/bcv2/flash": "bcv2/flash" });
   eleventyConfig.ignores.add("src/bcv2/flash/**");
 
+  // Short content hash for ?v= on script references, so browsers and
+  // Cloudflare pick up a changed file straight away.
+  eleventyConfig.addFilter("fileHash", (file) => crypto.createHash("sha256")
+    .update(fs.readFileSync(path.join("src", file)))
+    .digest("hex")
+    .slice(0, 10));
   eleventyConfig.addFilter("padIndex", (value) => String(value).padStart(2, "0"));
   eleventyConfig.addFilter("json", (value) => JSON.stringify(value));
   eleventyConfig.addFilter("presentationVariant", (media = {}, fullPage = false, device = "desktop") => {

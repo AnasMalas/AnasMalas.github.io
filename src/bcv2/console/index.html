@@ -7,11 +7,11 @@
     <meta name="theme-color" content="#0b0f12">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src https://anasmalas.com; object-src 'none'; base-uri 'none'; form-action 'none'">
     <title>The Negotiator II Power Control</title>
-    <link rel="stylesheet" href="styles.css?v=77468cc1e1">
+    <link rel="stylesheet" href="styles.css?v=a7d3aa48c1">
     <script src="protocol.js?v=bf13cedd84" defer></script>
     <script src="console-log.js?v=010ae64352" defer></script>
     <script src="product-telemetry.js?v=6c0e011221" defer></script>
-    <script src="support.js?v=a3923d182d" defer></script>
+    <script src="support.js?v=686716d12b" defer></script>
     <script src="app.js?v=fdc92b0452" defer></script>
     <script src="dashboard.js?v=6f9802c6bf" defer></script>
   </head>
@@ -33,15 +33,7 @@
       </div>
       <div id="update-banner" class="notice update-banner hidden" role="status">
         <span id="update-banner-text"></span>
-        <details id="update-banner-details" class="update-steps hidden"><summary>Download and flashing steps</summary>
-          <p>Easiest: the <a href="https://anasmalas.com/bcv2/#update" rel="noopener">easy flasher</a> for Windows, macOS and Linux downloads everything and flashes the card for you. Or by hand:</p><ol>
-          <li><a id="update-download" href="https://anasmalas.com/bcv2/#update" rel="noopener">Download the new firmware</a> (a <code>.bin</code> file).</li>
-          <li>Get a flashing tool. Windows: <a href="https://www.wch-ic.com/downloads/WCHISPTool_Setup_exe.html" rel="noopener">WCHISPTool</a> from WCH. macOS and Linux: <a href="https://github.com/ch32-rs/wchisp" rel="noopener">wchisp</a>.</li>
-          <li>Unplug the card. Flashing needs both USB ports: DATA carries data only and does not power the card. Plug DATA into this computer first.</li>
-          <li>Hold BOOT and plug a charger into POWER, then let go. If the display lights up, the card started normally instead: unplug POWER and try again, pressing BOOT harder.</li>
-          <li>WCHISPTool: choose CH32X035, pick the file, and press Download. wchisp: run <code>wchisp flash</code> with the file.</li>
-          <li>Unplug POWER, plug it back in, and connect here again. This banner then says it is the latest version.</li>
-        </ol></details>
+        <a id="update-link" class="hidden" href="https://anasmalas.com/bcv2/update/">Update your card</a>
       </div>
 
       <div class="dashboard-grid">

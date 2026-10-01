@@ -7,6 +7,7 @@
     "build": "eleventy",
     "dev": "eleventy --serve --watch",
     "studio": "node tools/studio-server.js",
+    "test": "node --test tools/wch-isp.test.js",
     "clean": "node -e \"require('fs').rmSync('_site', { recursive: true, force: true })\""
   },
   "devDependencies": {

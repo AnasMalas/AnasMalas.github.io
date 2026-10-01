@@ -183,9 +183,6 @@ code { color: #8be1b0; font-family: "Cascadia Code", Consolas, monospace; }
 .update-banner { color: var(--muted); background: var(--surface-soft); border: 1px solid var(--line); }
 .update-banner.update-available { color: var(--text); background: #2c2414; border-color: #6b5325; }
 .update-banner a { color: var(--cyan); }
-.update-steps { margin-top: 6px; }.update-steps summary { cursor: pointer; color: var(--amber); }
-.update-steps ol { margin: 6px 0 0; padding-left: 20px; line-height: 1.5; }
-.update-steps p { margin: 6px 0 0; line-height: 1.5; }
 .bug-notice { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px; color: var(--muted); background: var(--surface); border: 1px solid var(--line); }
 .bug-notice a { color: var(--cyan); }
 .bug-notice-actions { display: flex; gap: 6px; }

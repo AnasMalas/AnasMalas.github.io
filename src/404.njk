@@ -12,8 +12,10 @@ eleventyExcludeFromCollections: true
     const routes = {
       "/bcv2": "/bcv2/",
       "/bcv2/console": "/bcv2/console/",
+      "/bcv2/update": "/bcv2/update/",
       "/bc2": "/bcv2/",
       "/bc2/console": "/bcv2/console/",
+      "/bc2/update": "/bcv2/update/",
     };
     const path = location.pathname.toLowerCase().replace(/\/index\.html$/, "").replace(/\/+$/, "");
     const target = routes[path];

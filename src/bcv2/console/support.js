@@ -168,8 +168,7 @@
     noticeOff: $("#bug-notice-off"),
     noticeOk: $("#bug-notice-ok"),
     bannerText: $("#update-banner-text"),
-    bannerDetails: $("#update-banner-details"),
-    bannerDownload: $("#update-download"),
+    bannerLink: $("#update-link"),
     optIn: $("#bug-opt-in"),
     optInNote: $("#bug-opt-in-note"),
     reportButton: $("#report-bug"),
@@ -266,10 +265,9 @@
     const status = updateStatus(build, manifest);
     ui.banner.classList.toggle("hidden", status.state === "unknown");
     ui.banner.classList.toggle("update-available", status.state === "update");
-    ui.bannerDetails.classList.toggle("hidden", status.state !== "update");
+    ui.bannerLink.classList.toggle("hidden", status.state !== "update");
     if (status.state === "unknown") return;
     const product = manifest.product;
-    ui.bannerDownload.href = product.download;
     ui.bannerText.textContent = status.state === "latest"
       ? `Firmware ${formatBuild(build)} is the latest version.`
       : status.state === "update"
