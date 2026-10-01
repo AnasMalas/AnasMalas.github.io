@@ -69,8 +69,9 @@ permalink: /bcv2/
     <h3>What it does</h3>
     <p>You can see everything your charger offers in detail, request exact voltages, and watch live graphs of voltage, current and power. It also tells you if theres newer firmware for your card and how to update it.</p>
     <p>If your card restarts on its own, the console reads its black box when it reconnects. Thats a small log of what went wrong.</p>
-    <h3>Please turn on bug reports</h3>
-    <p>If you tick "Share anonymous bug reports", I get that black box and the log whenever something goes wrong, so I can look into your issue and fix it in the next firmware. It really helps!</p>
+    <h3>Bug reports</h3>
+    <p>Bug reports are on by default. When something goes wrong, like the card restarting, the charger saying yes but not giving you the voltage, or the console itself breaking, I get the black box and the log so I can look into it and fix it in the next firmware. It really helps!</p>
+    <p>Dont want that? Hit "Turn off" on the little notice at the top, or untick "Share anonymous bug reports" any time.</p>
     <p>You can also press "Report a bug" any time and tell me what happened. Or save the report and send it to the email on the card, scan the QR code on the card to add me to your phone contacts quickly :) Emailing it isnt anonymous of course, but the report still has your card's ID removed.</p>
 
     <h2 id="update">Updating the firmware</h2>
@@ -100,11 +101,11 @@ bash bcv2-flasher.sh</code></pre>
 
     <h2 id="privacy">Bug reports and your data</h2>
     <h3>What gets sent</h3>
-    <p>Nothing, unless you tick "Share anonymous bug reports" or send a report yourself. You can turn it off any time.</p>
-    <p>A report has the firmware version, your browser and system (like Chrome 140 on Windows), the console log, the black box, and whatever you wrote.</p>
+    <p>Only when something goes wrong, or when you send a report yourself. Turn bug reports off and nothing gets sent unless you hit Send.</p>
+    <p>A report has the firmware version, your browser and system (like Chrome 140 on Windows), what your charger offers, the last minute of voltage and current readings, the console log, the black box, any errors from the console itself, and whatever you wrote.</p>
     <p>Reports go to this site (anasmalas.com, which runs on Cloudflare) and get deleted after 180 days.</p>
     <h3>What doesnt</h3>
-    <p>Your card's ID is removed before anything is sent, and your IP address isnt stored. Please dont write personal info in there, I dont need it! The only other thing the console asks this site for is the latest firmware version.</p>
+    <p>Your card's ID is removed before anything is sent, and your IP address isnt stored. No cookies either, your browser just remembers if you turned reports off. Please dont write personal info in there, I dont need it! The only other thing the console asks this site for is the latest firmware version.</p>
 
     <p>Have fun with it, and tag me when you make something cool :)</p>
   {% endif %}

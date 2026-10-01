@@ -30,6 +30,10 @@
     <main id="top" class="dashboard-shell">
       <noscript><div class="notice notice-error">JavaScript is required to communicate with the card.</div></noscript>
       <div id="browser-notice" class="notice notice-error hidden" role="alert">This browser cannot access USB serial devices. Use current Chrome or Edge on desktop.</div>
+      <div id="bug-notice" class="notice bug-notice hidden" role="status">
+        <span>Bug reports are on. If something goes wrong, the console sends an anonymous report to help fix the firmware: no card ID, no IP address. <a href="https://anasmalas.com/bcv2/#privacy" rel="noopener">What is sent?</a></span>
+        <span class="bug-notice-actions"><button id="bug-notice-off" class="button button-quiet button-compact" type="button">Turn off</button><button id="bug-notice-ok" class="button button-secondary button-compact" type="button">OK</button></span>
+      </div>
       <div id="update-banner" class="notice update-banner hidden" role="status">
         <span id="update-banner-text"></span>
         <details id="update-banner-details" class="update-steps hidden"><summary>Download and flashing steps</summary>
