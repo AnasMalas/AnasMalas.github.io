@@ -243,7 +243,8 @@
         : "Reports can be sent from anasmalas.com/bcv2/console. Here they can be saved."
       : ui.optIn.checked ? "On: if something goes wrong, an anonymous report is sent." : "Off: nothing is sent.";
     ui.send.disabled = !reportingAvailable;
-    ui.notice.classList.toggle("hidden", !optedIn() || support.noticeDismissed);
+    // Optional: a page cached from before the notice has none.
+    ui.notice?.classList.toggle("hidden", !optedIn() || support.noticeDismissed);
   }
 
   async function loadManifest() {
@@ -430,8 +431,8 @@
   });
 
   ui.optIn.addEventListener("change", () => setEnabled(ui.optIn.checked));
-  ui.noticeOff.addEventListener("click", () => setEnabled(false));
-  ui.noticeOk.addEventListener("click", () => setEnabled(true));
+  ui.noticeOff?.addEventListener("click", () => setEnabled(false));
+  ui.noticeOk?.addEventListener("click", () => setEnabled(true));
 
   ui.reportButton.addEventListener("click", () => {
     ui.dialogNote.textContent = reportingAvailable
