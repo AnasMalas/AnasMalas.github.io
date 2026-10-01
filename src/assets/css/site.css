@@ -333,6 +333,9 @@ h1, h2, h3, p, figure { margin-top: 0; }
 .note-body p, .note-body ul { margin-bottom: 1.35em; }
 .note-body li { margin-bottom: .45em; }
 .note-body .callout { margin: 1.8em 0; padding: 20px 22px; border-left: 3px solid var(--accent); background: var(--soft); }
+.note-body pre { margin: 0 0 1.35em; padding: 14px 16px; overflow-x: auto; border: 1px solid var(--line); background: var(--soft); font-size: 15px; line-height: 1.6; }
+.note-body code { font-size: .88em; overflow-wrap: anywhere; }
+.note-body pre code { font-size: inherit; overflow-wrap: normal; }
 .source-note { color: var(--muted); font-size: 13px; }
 .note-footer { display: flex; justify-content: space-between; gap: 24px; padding-top: 24px; border-top: 1px solid var(--line); }
 .note-tags, .note-actions { display: flex; flex-wrap: wrap; gap: 10px; }

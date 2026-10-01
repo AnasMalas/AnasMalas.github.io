@@ -9,6 +9,9 @@ module.exports = function (eleventyConfig) {
   // web-console/scripts/publish-site.ps1. Serve it as-is, not as templates.
   eleventyConfig.addPassthroughCopy({ "src/bcv2/console": "bcv2/console" });
   eleventyConfig.ignores.add("src/bcv2/console/**");
+  // The easy flashers are downloaded and run as-is.
+  eleventyConfig.addPassthroughCopy({ "src/bcv2/flash": "bcv2/flash" });
+  eleventyConfig.ignores.add("src/bcv2/flash/**");
 
   eleventyConfig.addFilter("padIndex", (value) => String(value).padStart(2, "0"));
   eleventyConfig.addFilter("json", (value) => JSON.stringify(value));

@@ -74,14 +74,29 @@ permalink: /bcv2/
     <p>If its greyed out, I'm still setting it up. For now press "Report a bug", save the report, and send it to the email on the card. Scan the QR code on the card to add me to your phone contacts quickly :) Emailing it isnt anonymous of course, but the report still has your card's ID removed.</p>
 
     <h2 id="update">Updating the firmware</h2>
+    <p>Two ways to do it. The easy flasher does it all for you, or you can grab the file and do it yourself.</p>
+    <h3>Getting the card ready</h3>
+    <p>Both ways need both USB ports. Plug DATA into your computer first, it only carries data so the card stays off. Then hold BOOT, plug your charger into POWER and let go. If the display comes on, it didnt make it into the bootloader. Unplug POWER and try again, pressing BOOT harder.</p>
+    <h3>Easy flasher</h3>
+    <p>It downloads the flashing tool and the latest firmware, then waits for your card and flashes it. The window goes green when its done and red if something went wrong. Got a few cards? Just keep plugging them in.</p>
+    <p><strong>Windows:</strong> <a href="/bcv2/flash/bcv2-flasher.ps1" download>download bcv2-flasher.ps1</a>, right click it and pick "Run with PowerShell" (on Windows 11 it might be under "Show more options"). The first time, Windows needs a driver for the card. The flasher notices and walks you through Zadig, the usual tool for that.</p>
+    <p><strong>Mac and Linux:</strong> open Terminal and run these:</p>
+    <pre><code>cd ~/Downloads
+curl -fLO https://anasmalas.com/bcv2/flash/bcv2-flasher.sh
+bash bcv2-flasher.sh</code></pre>
+    <p>On Linux it asks before adding a udev rule, so you dont need sudo every time.</p>
+    <h3>Is it safe?</h3>
+    <p>Tell you what, read it first! Both are short plain scripts and the <a href="https://github.com/AnasMalas/AnasMalas.github.io/tree/main/src/bcv2/flash" rel="noopener">source is on GitHub</a>. They only download <a href="https://github.com/ch32-rs/wchisp" rel="noopener">wchisp</a> v0.3.0, the open source flashing tool, from its GitHub page and the firmware from this site, and check both against fixed SHA-256 hashes. If anything doesnt match they delete it and stop.</p>
+    <p>No admin needed, except for the Linux udev rule, and on Windows the Microsoft C++ runtime and the driver if you dont have them already. Those ask first. Everything else stays in one folder you can just delete: <code>%LOCALAPPDATA%\bcv2-flasher</code> on Windows, <code>~/Library/Caches/bcv2-flasher</code> on Mac and <code>~/.cache/bcv2-flasher</code> on Linux.</p>
+    <h3>Doing it yourself</h3>
     <ol>
       <li><a href="/assets/bcv2/firmware/bcv2-rev1-product-latest.bin">Download the latest firmware</a>.</li>
       <li>Get a flashing tool: <a href="https://www.wch-ic.com/downloads/WCHISPTool_Setup_exe.html" rel="noopener">WCHISPTool</a> on Windows, or <a href="https://github.com/ch32-rs/wchisp" rel="noopener">wchisp</a> on Mac and Linux.</li>
-      <li>You need both USB ports for this. Unplug everything, then plug DATA into your computer first. It only carries data, so the card stays off.</li>
-      <li>Hold BOOT and plug your charger into POWER, then let go. If the display comes on, it didnt make it into the bootloader. Unplug POWER and try again, pressing BOOT harder.</li>
+      <li>Get the card ready like above.</li>
       <li>In WCHISPTool pick CH32X035, choose the file and press Download. With wchisp, run <code>wchisp flash</code> with the file.</li>
-      <li>Unplug POWER, plug it back in, and thats it! The console should now say you're on the latest version.</li>
     </ol>
+    <p>Heads up, WCHISPTool and the easy flasher use different drivers on Windows, so stick to one.</p>
+    <p>Either way, unplug POWER and plug it back in when its done. The console should now say you're on the latest version.</p>
 
     <h2 id="privacy">Bug reports and your data</h2>
     <h3>What gets sent</h3>

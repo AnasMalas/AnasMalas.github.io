@@ -197,6 +197,7 @@ code { color: #8be1b0; font-family: "Cascadia Code", Consolas, monospace; }
 .update-banner a { color: var(--cyan); }
 .update-steps { margin-top: 6px; }.update-steps summary { cursor: pointer; color: var(--amber); }
 .update-steps ol { margin: 6px 0 0; padding-left: 20px; line-height: 1.5; }
+.update-steps p { margin: 6px 0 0; line-height: 1.5; }
 .bug-report-row { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin: 0 0 6px; font-size: .68rem; color: var(--muted); }
 .bug-report-row label { display: flex; gap: 5px; align-items: center; color: var(--text); }
 .bug-report-row input { width: auto; height: auto; accent-color: var(--green); }

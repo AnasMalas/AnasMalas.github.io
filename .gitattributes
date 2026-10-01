@@ -1,0 +1,2 @@
+# The macOS/Linux flasher must keep LF line endings or bash fails on it.
+*.sh text eol=lf

@@ -661,7 +661,8 @@ function appendControlData(chunk) {
     try {
       // The public device event reserves bits 0-2; rev1 advertises the
       // additional product-capabilities and full-control command sets here.
-      if (frame.kind === 0x81 && frame.payload.length === 21) {
+      // Builds since 2026-09-27 append the build ID and library tag (29 bytes).
+      if (frame.kind === 0x81 && (frame.payload.length === 21 || frame.payload.length === 29)) {
         state.supportsCaps = Boolean(frame.payload[8] & 0x40);
         state.supportsDirectControls = Boolean(frame.payload[8] & 0x20);
         state.supportsFullControl = Boolean(frame.payload[8] & 0x80);
