@@ -29,8 +29,10 @@
   const MAX_CAPABILITY_LINES = 16;
   const MAX_ERRORS = 5;
   const MAX_ERROR_LENGTH = 800;
-  // A contract VBUS misses this long with LOAD off is reported.
-  const VBUS_MISS_REPORT_MS = 2000;
+  // A contract VBUS misses this long with LOAD off is reported: before the
+  // firmware's own check (1 s) steps to 5 V and asks again, so each charger
+  // that needs that workaround shows up once per voltage.
+  const VBUS_MISS_REPORT_MS = 800;
   const FLAG_CONTRACT_READY = 1 << 1;
   const FLAG_OUTPUT_EFFECTIVE = 1 << 3;
   const FLAG_BRAKE_LATCHED = 1 << 11;
