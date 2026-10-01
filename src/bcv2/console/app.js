@@ -21,18 +21,6 @@ const ui = {
   currentConfidence: $("#current-confidence"),
   sourceKind: $("#source-kind"),
   sourceSummary: $("#source-summary"),
-  livePps: $("#live-pps"),
-  ppsModeIndicator: $("#pps-mode-indicator"),
-  ppsMode: $("#pps-mode"),
-  ppsModeDetail: $("#pps-mode-detail"),
-  ppsMeasurement: $("#pps-measurement"),
-  sourceTemperature: $("#source-temperature"),
-  sourceInput: $("#source-input"),
-  sourceEvents: $("#source-events"),
-  sourceLimits: $("#source-limits"),
-  telemetryNote: $("#telemetry-note"),
-  telemetryToggle: $("#telemetry-toggle"),
-  ppsMaintenanceState: $("#pps-maintenance-state"),
   voltageForm: $("#voltage-form"),
   voltageInput: $("#voltage-input"),
   currentInput: $("#current-input"),
@@ -43,15 +31,7 @@ const ui = {
   enterEprButton: $("#enter-epr-button"),
   eprCapsButton: $("#epr-caps-button"),
   exitEprButton: $("#exit-epr-button"),
-  plansButton: $("#plans-button"),
   featureStatus: $("#feature-status"),
-  pdoForm: $("#pdo-form"),
-  pdoPosition: $("#pdo-position"),
-  pdoDemand: $("#pdo-demand"),
-  pdoVoltageField: $("#pdo-voltage-field"),
-  pdoVoltage: $("#pdo-voltage"),
-  pdoCurrentField: $("#pdo-current-field"),
-  pdoCurrent: $("#pdo-current"),
   capabilityCount: $("#capability-count"),
   capabilityBody: $("#capability-body"),
   terminal: $("#terminal"),
@@ -94,9 +74,6 @@ const state = {
   contractPosition: null,
   contractSupplyType: null,
   contractEpr: false,
-  ppsRefreshTimer: null,
-  ppsQueryPending: false,
-  ppsPollingPausedUntil: 0,
   condenseConsole: true,
   rawStream: false,
   collapsedConsoleRows: new Map(),
@@ -208,38 +185,6 @@ function displayBoardId(uid) {
   return uid ? `Board ${uid.slice(-8).toUpperCase()}` : "Board identity pending";
 }
 
-function displayStatusToken(value) {
-  return value.replaceAll("-", " ");
-}
-
-function displayStatusList(value) {
-  return value === "none"
-    ? "None"
-    : value.split(",").map(displayStatusToken).join(", ");
-}
-
-function setPpsMode(mode, detail) {
-  ui.ppsModeIndicator.classList.toggle("is-cv", mode === "CV");
-  ui.ppsModeIndicator.classList.toggle("is-cl", mode === "CL");
-  ui.ppsMode.textContent = mode === "CV"
-    ? "CV reported"
-    : mode === "CL"
-      ? "Current limit reported"
-      : "Unknown";
-  ui.ppsModeDetail.textContent = detail;
-}
-
-function clearSourceTelemetry() {
-  setPpsMode(null, "No PPS status received");
-  ui.ppsMeasurement.textContent = "—";
-  ui.sourceTemperature.textContent = "—";
-  ui.sourceInput.textContent = "No general status received";
-  ui.sourceEvents.textContent = "None reported";
-  ui.sourceLimits.textContent = "No active limits reported";
-  ui.ppsMaintenanceState.textContent = "PPS contract maintenance: waiting for a PPS contract";
-  ui.telemetryNote.textContent = "A compliant PPS source sends an Alert when it changes between CV and CL; the firmware then reads general Status automatically. Optional polling helps with sources that do not send that Alert.";
-}
-
 function transportLabel() {
   if (state.transport === "usb-control") return "Compact USB control";
   if (state.transport === "dev-text-console") return "Development text console";
@@ -270,9 +215,7 @@ function setVoltageCeiling(value, { persist = false } = {}) {
 
   const maximumVolts = state.maxVoltageMillivolts / 1000;
   ui.voltageInput.max = String(maximumVolts);
-  ui.pdoVoltage.max = String(maximumVolts);
   if (Number(ui.voltageInput.value) > maximumVolts) ui.voltageInput.value = String(maximumVolts);
-  if (Number(ui.pdoVoltage.value) > maximumVolts) ui.pdoVoltage.value = String(maximumVolts);
 
   const stored = persist && persistVoltageCeiling();
   if (state.deviceUid) {
@@ -304,41 +247,6 @@ function applyDeviceIdentity(rawUid) {
   ui.voltageCeilingNote.textContent = `${board} uses the limits reported by its firmware.`;
 }
 
-async function pollPpsStatus() {
-  if (
-    state.ppsQueryPending
-    || !state.connected
-    || state.transport === null
-    || state.contractSupplyType !== "PPS"
-    || Date.now() < state.ppsPollingPausedUntil
-  ) return;
-
-  state.ppsQueryPending = true;
-  try {
-    await sendCommand("pps-status", { echo: false });
-  } catch (error) {
-    state.ppsQueryPending = false;
-    if (state.connected) addLog(`Live PPS refresh stopped: ${error.message}`, "system", "error");
-  }
-}
-
-function configurePpsPolling() {
-  if (state.ppsRefreshTimer !== null) {
-    clearInterval(state.ppsRefreshTimer);
-    state.ppsRefreshTimer = null;
-  }
-  const running = ui.livePps.checked
-    && state.connected
-    && state.transport !== null
-    && (state.transport === "dev-text-console" || state.supportsFullControl)
-    && state.contractSupplyType === "PPS";
-  ui.telemetryToggle.textContent = running ? "Stop telemetry" : "Start telemetry";
-  ui.telemetryToggle.setAttribute("aria-pressed", String(running));
-  if (!running) return;
-  void pollPpsStatus();
-  state.ppsRefreshTimer = setInterval(() => void pollPpsStatus(), 1000);
-}
-
 function updateActionAvailability() {
   const ready = state.connected && state.transport !== null;
   const fullControl = ready && (state.transport === "dev-text-console" || state.supportsFullControl);
@@ -363,19 +271,13 @@ function updateActionAvailability() {
       : "";
   });
   document.querySelectorAll(".request-submit").forEach((button) => {
-    button.disabled = !ready || (button.closest("#pdo-form") !== null && !fullControl);
+    button.disabled = !ready;
   });
   ui.rawCommand.disabled = !ready;
   ui.rawCommandForm.querySelector("button").disabled = !ready;
   ui.enterEprButton.disabled = !directControls || state.inEpr || !state.sourceEprCapable;
   ui.eprCapsButton.disabled = !directControls || !state.inEpr;
   ui.exitEprButton.disabled = !directControls || !state.inEpr;
-  ui.plansButton.disabled = !fullControl || state.transport === "dev-text-console";
-  ui.plansButton.title = state.transport === "dev-text-console"
-    ? "The text-console profile omits this flash-heavy preview; flash usb-epr to use it."
-    : !fullControl && ready ? "Requires the full-control firmware image." : "";
-  ui.livePps.disabled = !fullControl || state.contractSupplyType !== "PPS";
-  ui.telemetryToggle.disabled = !fullControl || state.contractSupplyType !== "PPS";
 }
 
 function setConnected(connected) {
@@ -403,19 +305,15 @@ function setConnected(connected) {
     state.supportsCaps = false;
     state.supportsDirectControls = false;
     state.supportsFullControl = false;
-    state.ppsQueryPending = false;
     setVoltageCeiling(5000);
     ui.deviceDescription.textContent = "Connect USB-control or development text-console firmware to begin.";
     ui.deviceId.textContent = "No device selected";
     ui.deviceId.removeAttribute("title");
   }
   updateActionAvailability();
-  configurePpsPolling();
 }
 
 function clearDeviceState() {
-  state.ppsQueryPending = false;
-  state.ppsPollingPausedUntil = 0;
   state.pdos.clear();
   state.expectedPdoCount = 0;
   state.sourceKind = null;
@@ -433,10 +331,8 @@ function clearDeviceState() {
   ui.currentConfidence.textContent = "Awaiting negotiation";
   ui.sourceKind.textContent = "—";
   ui.sourceSummary.textContent = "Not received";
-  clearSourceTelemetry();
   renderCapabilities();
   updateActionAvailability();
-  configurePpsPolling();
 }
 
 function formatUsbId(value) {
@@ -937,14 +833,12 @@ function refreshContractSupply() {
   ui.contractSupply.textContent = `${label} · PDO ${state.contractPosition}${state.contractEpr ? " · EPR" : ""}`;
   renderCapabilities();
   updateActionAvailability();
-  configurePpsPolling();
 }
 
 function parseDeviceLine(line) {
   const isError = /^(Rejected|Request rejected|Invalid|Busy|Unsupported command|PD stopped|Protocol lost|Hard reset|.+ query failed:)/.test(line);
   addLog(line, "incoming", isError ? "error" : "normal");
   globalThis.dispatchEvent(new CustomEvent("bcv2-device-line", { detail: line }));
-  if (/^Busy\b/.test(line)) state.ppsQueryPending = false;
 
   const identity = line.match(/^Device id=([0-9a-f]{16}|[0-9a-f]{24}|unavailable)$/i);
   if (identity) {
@@ -962,23 +856,18 @@ function parseDeviceLine(line) {
   }
 
   if (/^Attached\b/.test(line)) {
-    state.ppsQueryPending = false;
     state.contractPosition = null;
     state.contractSupplyType = null;
     state.contractEpr = false;
-    clearSourceTelemetry();
     ui.portState.textContent = "Attached";
     ui.portDetail.textContent = "PD negotiation active";
     setSystemStatus("normal", "Negotiating", "Source attached; waiting for a contract");
-    configurePpsPolling();
   } else if (/^Detached\b/.test(line)) {
-    state.ppsQueryPending = false;
     state.inEpr = false;
     state.sourceEprCapable = false;
     state.contractPosition = null;
     state.contractSupplyType = null;
     state.contractEpr = false;
-    clearSourceTelemetry();
     ui.portState.textContent = "Detached";
     ui.portDetail.textContent = "Waiting for source";
     ui.contractVoltage.textContent = "—";
@@ -988,15 +877,12 @@ function parseDeviceLine(line) {
     state.pendingPdoPosition = null;
     setSystemStatus("warning", "Detached", "No source contract");
     updateActionAvailability();
-    configurePpsPolling();
   } else if (/^(Hard reset|Protocol lost|PD stopped)/.test(line)) {
-    state.ppsQueryPending = false;
     state.inEpr = false;
     state.sourceEprCapable = false;
     state.contractPosition = null;
     state.contractSupplyType = null;
     state.contractEpr = false;
-    clearSourceTelemetry();
     ui.portState.textContent = "Recovering";
     ui.portDetail.textContent = line;
     ui.contractVoltage.textContent = "—";
@@ -1005,9 +891,7 @@ function parseDeviceLine(line) {
     setRequestFeedback(line, "error");
     setSystemStatus("error", /^Hard reset/.test(line) ? "Hard reset" : "Protocol lost", line);
     updateActionAvailability();
-    configurePpsPolling();
   } else if (/^Requesting\b/.test(line)) {
-    state.ppsPollingPausedUntil = Date.now() + 2000;
     ui.portState.textContent = "Negotiating";
     ui.portDetail.textContent = "Waiting for Accept and PS_RDY";
     setSystemStatus("normal", "Negotiating", "Waiting for the source to accept the request");
@@ -1064,11 +948,6 @@ function parseDeviceLine(line) {
     refreshContractSupply();
     setRequestFeedback(`Contract ready on PDO ${position} at ${displayMillivolts(voltage)}.`, "success");
     setSystemStatus("normal", "OK", `${pdoType} contract ready on PDO ${position}`);
-    state.ppsPollingPausedUntil = Date.now() + 500;
-    ui.ppsMaintenanceState.textContent = state.contractSupplyType === "PPS"
-      ? "PPS contract maintenance: awaiting first refresh"
-      : "PPS contract maintenance: inactive on this contract";
-    configurePpsPolling();
     return;
   }
 
@@ -1087,80 +966,6 @@ function parseDeviceLine(line) {
     return;
   }
 
-  const ppsStatus = line.match(
-    /^PPS_Status: voltage=(unsupported|\d+mV) current=(unsupported|\d+mA) mode=(CV|CL) temperature=([^\s]+)$/,
-  );
-  if (ppsStatus) {
-    state.ppsQueryPending = false;
-    const voltage = ppsStatus[1] === "unsupported"
-      ? "Voltage unavailable"
-      : displayMillivolts(Number.parseInt(ppsStatus[1], 10));
-    const current = ppsStatus[2] === "unsupported"
-      ? "current unavailable"
-      : displayMilliamps(Number.parseInt(ppsStatus[2], 10));
-    ui.ppsMeasurement.textContent = `${voltage} · ${current}`;
-    ui.sourceTemperature.textContent = `${displayStatusToken(ppsStatus[4])} · PPS`;
-    setPpsMode(ppsStatus[3], `Source PPS_Status bit · temperature ${displayStatusToken(ppsStatus[4])}`);
-    ui.telemetryNote.textContent = "These values and CV/CL mode are reported by the source. Some sources omit fields or report an unreliable mode bit; use a meter when the distinction matters.";
-    return;
-  }
-
-  const sourceStatus = line.match(
-    /^Source_Status: mode=(CV|CL|n\/a) internal=([^\s]+) input=([^\s]+) battery=(true|false) non-battery=(true|false) temperature=([^\s]+) events=([^\s]+) limits=([^\s]+) state=([^\s]+) indicator=([^\s]+)$/,
-  );
-  if (sourceStatus) {
-    if (sourceStatus[1] === "CV" || sourceStatus[1] === "CL") {
-      setPpsMode(sourceStatus[1], "Source general Status bit · updated after Alert or manual read");
-    } else if (state.contractSupplyType !== "PPS") {
-      setPpsMode(null, "The active contract is not PPS");
-    }
-    ui.sourceTemperature.textContent = `${displayStatusToken(sourceStatus[2])} · ${displayStatusToken(sourceStatus[6])}`;
-    const inputKinds = [
-      displayStatusToken(sourceStatus[3]),
-      sourceStatus[4] === "true" ? "battery" : null,
-      sourceStatus[5] === "true" ? "non-battery" : null,
-    ].filter(Boolean);
-    ui.sourceInput.textContent = `${inputKinds.join(" · ")} · state ${displayStatusToken(sourceStatus[9])}`;
-    ui.sourceEvents.textContent = sourceStatus[7] === "none"
-      ? "None reported"
-      : displayStatusList(sourceStatus[7]);
-    ui.sourceLimits.textContent = sourceStatus[8] === "none"
-      ? "No active limits reported"
-      : `Power limited by ${displayStatusList(sourceStatus[8]).toLowerCase()}`;
-    ui.telemetryNote.textContent = `General Status received · requested indicator ${displayStatusToken(sourceStatus[10])}. Event flags describe the latest event and may clear after they are read.`;
-    return;
-  }
-
-  const alert = line.match(/^PD Alert: events=([^\s]+) raw=(0x[0-9a-f]{8})$/i);
-  if (alert) {
-    ui.sourceEvents.textContent = alert[1] === "none"
-      ? "Alert with no event bits"
-      : `Alert: ${displayStatusList(alert[1])}`;
-    ui.telemetryNote.textContent = "Source Alert received. The firmware automatically requests general Status for non-battery source changes.";
-    return;
-  }
-
-  const queryFailure = line.match(/^(PPS_Status|Source_Status) query failed: (.+)$/);
-  if (queryFailure) {
-    if (queryFailure[1] === "PPS_Status") {
-      state.ppsQueryPending = false;
-      if (queryFailure[2] === "unsupported") {
-        ui.livePps.checked = false;
-        configurePpsPolling();
-      }
-    }
-    ui.telemetryNote.textContent = `${queryFailure[1]} was ${queryFailure[2]}; the existing power contract remains active.`;
-    return;
-  }
-
-  const refresh = line.match(/^Contract refresh confirmed(?: PDO(\d+) (\d+)mV usable=(\d+)mA)?$/);
-  if (refresh) {
-    ui.ppsMaintenanceState.textContent = state.contractSupplyType === "PPS"
-      ? refresh[2]
-        ? `PPS contract maintained at ${timeStamp()} · ${displayMillivolts(Number(refresh[2]))} · ${displayMilliamps(Number(refresh[3]))} usable`
-        : `PPS contract maintained at ${timeStamp()}`
-      : `Contract refreshed at ${timeStamp()}`;
-  }
 }
 
 function commandRequestedVoltage(command) {
@@ -1212,29 +1017,16 @@ async function sendCommand(command, { echo = true } = {}) {
       `This request exceeds the board's ${displayMillivolts(state.maxVoltageMillivolts)} GUI ceiling.`,
     );
   }
-  const isPpsStatus = trimmed.toLowerCase() === "pps-status";
-  if (isPpsStatus) state.ppsQueryPending = true;
-  if (
-    requestedVoltage !== null
-    || /^(?:enter-epr|exit-epr|epr-caps)\b/i.test(trimmed)
-  ) {
-    state.ppsPollingPausedUntil = Date.now() + 2000;
+  let bytes;
+  if (state.transport === "usb-control") {
+    const sequence = state.nextSequence;
+    state.nextSequence = sequence === 0xff ? 1 : sequence + 1;
+    bytes = globalThis.Bcv2CommandEncoder?.(trimmed, sequence)
+      ?? controlProtocol.encodeCommand(trimmed, sequence);
+  } else {
+    bytes = encoder.encode(`${trimmed}\n`);
   }
-  try {
-    let bytes;
-    if (state.transport === "usb-control") {
-      const sequence = state.nextSequence;
-      state.nextSequence = sequence === 0xff ? 1 : sequence + 1;
-      bytes = globalThis.Bcv2CommandEncoder?.(trimmed, sequence)
-        ?? controlProtocol.encodeCommand(trimmed, sequence);
-    } else {
-      bytes = encoder.encode(`${trimmed}\n`);
-    }
-    await writeTransport(bytes);
-  } catch (error) {
-    if (isPpsStatus) state.ppsQueryPending = false;
-    throw error;
-  }
+  await writeTransport(bytes);
   if (echo) addLog(trimmed, "outgoing");
   if (/^output-(?:on|off)$/i.test(trimmed)) {
     globalThis.dispatchEvent(new CustomEvent("bcv2-output-command", { detail: trimmed.toLowerCase() }));
@@ -1579,12 +1371,6 @@ function toMilli(value, label, { optional = false, maximum } = {}) {
   return Math.round(parsed * 1000);
 }
 
-function updatePdoFields() {
-  const demand = ui.pdoDemand.value;
-  ui.pdoVoltageField.classList.toggle("hidden", demand !== "adjust");
-  ui.pdoCurrentField.classList.toggle("hidden", demand === "max");
-}
-
 ui.connectButton.addEventListener("click", connectPort);
 ui.autoReconnect.addEventListener("change", () => {
   try {
@@ -1601,14 +1387,6 @@ ui.autoReconnect.addEventListener("change", () => {
     setFeedback("Automatic reconnect enabled for previously authorized devices.");
     if (!state.connected) void tryAutoReconnect();
   }
-});
-ui.livePps.addEventListener("change", configurePpsPolling);
-ui.telemetryToggle.addEventListener("click", () => {
-  ui.livePps.checked = state.ppsRefreshTimer === null;
-  configurePpsPolling();
-  setFeedback(ui.livePps.checked
-    ? "Live PPS telemetry started; only one source query can be in flight."
-    : "Live PPS telemetry stopped. Mandatory PPS contract maintenance remains active.");
 });
 ui.condenseLog.addEventListener("click", () => {
   state.condenseConsole = !state.condenseConsole;
@@ -1657,29 +1435,6 @@ document.querySelectorAll(".command-button").forEach((button) => {
       setFeedback(error.message, true);
     }
   });
-});
-
-ui.pdoDemand.addEventListener("change", updatePdoFields);
-ui.pdoForm.addEventListener("submit", async (event) => {
-  event.preventDefault();
-  try {
-    const position = Number(ui.pdoPosition.value);
-    if (!Number.isInteger(position) || position < 1 || position > 11) throw new Error("PDO position must be 1 through 11.");
-    const demand = ui.pdoDemand.value;
-    let command = `pdo ${position} max`;
-    if (demand === "current") {
-      const current = toMilli(ui.pdoCurrent.value, "Current", { maximum: 5 });
-      command = `pdo ${position} current ${current}`;
-    } else if (demand === "adjust") {
-      const voltage = toMilli(ui.pdoVoltage.value, "Voltage", { maximum: 50 });
-      const current = toMilli(ui.pdoCurrent.value, "Current", { optional: true, maximum: 5 });
-      command = `pdo ${position} adjust ${voltage} ${current === null ? "max" : current}`;
-    }
-    await sendCommand(command);
-    setFeedback(`Direct request for PDO ${position} queued.`);
-  } catch (error) {
-    setFeedback(error.message, true);
-  }
 });
 
 ui.rawCommandForm.addEventListener("submit", async (event) => {
@@ -1793,7 +1548,6 @@ if ("usb" in navigator) {
 ui.autoReconnect.checked = readAutoReconnectPreference();
 setConnected(false);
 clearDeviceState();
-updatePdoFields();
 updateActionAvailability();
 addLog(
   IS_ANDROID

@@ -7,22 +7,19 @@
     <meta name="theme-color" content="#0b0f12">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src https://anasmalas.com; object-src 'none'; base-uri 'none'; form-action 'none'">
     <title>The Negotiator II Power Control</title>
-    <link rel="stylesheet" href="styles.css?v=6e197bf5b0">
+    <link rel="stylesheet" href="styles.css?v=77468cc1e1">
     <script src="protocol.js?v=bf13cedd84" defer></script>
     <script src="console-log.js?v=010ae64352" defer></script>
     <script src="product-telemetry.js?v=6c0e011221" defer></script>
     <script src="support.js?v=a3923d182d" defer></script>
-    <script src="app.js?v=b68072d804" defer></script>
-    <script src="dashboard.js?v=8048a2f271" defer></script>
+    <script src="app.js?v=fdc92b0452" defer></script>
+    <script src="dashboard.js?v=6f9802c6bf" defer></script>
   </head>
   <body>
     <header class="status-bar" aria-live="polite">
       <a class="brand" href="#top" aria-label="The Negotiator II power control home"><span class="brand-mark" aria-hidden="true">N2</span><strong>The Negotiator II</strong></a>
       <div class="connection-state"><span id="connection-dot" class="status-dot"></span><span id="connection-label">Disconnected</span></div>
       <div class="status-message"><span>Status:</span><strong id="system-status">Offline</strong><span id="system-status-detail">Connect a card to begin</span></div>
-      <div class="header-readings" aria-label="Live measurements">
-        <span><small>V</small><strong id="header-voltage">—</strong></span><span><small>A</small><strong id="header-current">—</strong></span><span><small>W</small><strong id="header-power">—</strong></span>
-      </div>
       <span id="device-id" class="device-chip">No device</span>
       <div class="connection-actions"><button id="connect-button" class="button button-primary button-compact" type="button">Connect</button><label class="auto-reconnect"><input id="auto-reconnect" type="checkbox" checked> Auto reconnect</label><button id="report-bug" class="button button-quiet button-compact" type="button">Report a bug</button></div>
     </header>
@@ -87,8 +84,15 @@
             <span><small>Contract</small><strong id="contract-voltage">—</strong><em id="contract-supply">No confirmed contract</em></span>
             <span><small>Available</small><strong id="usable-current">—</strong><em id="current-confidence">Awaiting negotiation</em></span>
           </div>
-          <div class="chart-wrap"><canvas id="power-chart" aria-label="Live voltage, current, and power chart"></canvas><div id="chart-empty" class="chart-empty">Stream is ready. Connect the card to begin plotting.</div><div id="chart-cursor" class="chart-cursor hidden" aria-live="polite"></div></div>
-          <div class="chart-legend" aria-hidden="true"><span class="voltage">Voltage</span><span class="current">Current</span><span class="power">Power</span><span id="average-state" class="average-state">Display: 250 ms average · CSV: raw</span><span id="sample-count">0 samples</span></div>
+          <div class="chart-area">
+            <div class="chart-wrap"><canvas id="power-chart" aria-label="Live voltage, current, and power chart"></canvas><div id="chart-empty" class="chart-empty">Stream is ready. Connect the card to begin plotting.</div><div id="chart-cursor" class="chart-cursor hidden" aria-live="polite"></div></div>
+            <div class="live-readings" aria-label="Live measurements">
+              <div class="reading reading-voltage"><span>Voltage</span><strong><b id="reading-voltage">—</b><small>V</small></strong></div>
+              <div class="reading reading-current"><span>Current</span><strong><b id="reading-current">—</b><small>A</small></strong></div>
+              <div class="reading reading-power"><span>Power</span><strong><b id="reading-power">—</b><small>W</small></strong></div>
+            </div>
+          </div>
+          <div class="chart-legend" aria-hidden="true"><span id="average-state" class="average-state">Display: 250 ms average · CSV: raw</span><span id="sample-count">0 samples</span></div>
         </section>
       </div>
 
@@ -102,11 +106,6 @@
             <span>Inspect</span>
             <div>
               <button class="button button-secondary command-button" data-command="caps" type="button" disabled>Capabilities</button>
-              <button id="plans-button" class="button button-secondary command-button" data-command="plans" type="button" disabled>Request plans</button>
-              <button class="button button-secondary command-button" data-command="status" type="button" disabled>Contract</button>
-              <button class="button button-secondary command-button" data-command="source-info" type="button" disabled>Source_Info</button>
-              <button class="button button-secondary command-button" data-command="source-status" type="button" disabled>Source status</button>
-              <button class="button button-secondary command-button" data-command="pps-status" type="button" disabled>PPS status</button>
             </div>
           </div>
           <div class="action-group">
@@ -125,31 +124,6 @@
             </div>
           </div>
         </div>
-        <details class="advanced-request">
-          <summary>Advanced direct-PDO request</summary>
-          <form id="pdo-form">
-            <label><span>PDO</span><input id="pdo-position" type="number" min="1" max="11" step="1" value="1" required></label>
-            <label><span>Demand</span><select id="pdo-demand"><option value="max">Maximum</option><option value="current">Requested current</option><option value="adjust">Adjustable voltage</option></select></label>
-            <label id="pdo-voltage-field" class="hidden"><span>Voltage (V)</span><input id="pdo-voltage" type="number" min="3.3" max="48" step="0.02" value="5"></label>
-            <label id="pdo-current-field" class="hidden"><span>Current (A)</span><input id="pdo-current" type="number" min="0.05" max="5" step="0.05" placeholder="Max"></label>
-            <button class="button button-secondary request-submit" type="submit" disabled>Send PDO request</button>
-          </form>
-        </details>
-      </section>
-
-      <section class="panel source-status-panel" aria-labelledby="source-status-heading">
-        <div class="panel-heading compact-heading">
-          <div><p class="eyebrow">Source-reported telemetry</p><h2 id="source-status-heading">PPS and source status</h2></div>
-          <div class="telemetry-actions"><button id="telemetry-toggle" class="button button-toggle" type="button" aria-pressed="false" disabled>Start PPS telemetry</button><label class="live-toggle"><input id="live-pps" type="checkbox" disabled> 1 s refresh</label></div>
-        </div>
-        <p id="pps-maintenance-state" class="telemetry-activity">PPS contract maintenance: waiting for a PPS contract</p>
-        <div class="telemetry-grid">
-          <article class="telemetry-card telemetry-mode-card"><span id="pps-mode-indicator" class="mode-indicator" aria-hidden="true"></span><div><span>Regulator</span><strong id="pps-mode">Unknown</strong><small id="pps-mode-detail">No PPS status received</small></div></article>
-          <article class="telemetry-card"><span>Source measurement</span><strong id="pps-measurement">—</strong><small>Source-reported, not the card ADC</small></article>
-          <article class="telemetry-card"><span>Temperature / input</span><strong id="source-temperature">—</strong><small id="source-input">No general status received</small></article>
-          <article class="telemetry-card"><span>Events / limits</span><strong id="source-events">None reported</strong><small id="source-limits">No active limits reported</small></article>
-        </div>
-        <p id="telemetry-note" class="telemetry-note">A PPS source may send an Alert when it changes between CV and CL; optional polling helps with sources that do not.</p>
       </section>
 
       <section class="panel terminal-panel" aria-labelledby="terminal-heading">
@@ -171,7 +145,7 @@
             <div><dt><code>caps</code></dt><dd>Refresh source-advertised PDOs, including after reconnect.</dd></div>
             <div><dt><code>enter-epr</code> / <code>epr-caps</code> / <code>exit-epr</code></dt><dd>EPR mode controls, when supported by the source.</dd></div>
             <div><dt><code>output-on</code> / <code>output-off</code></dt><dd>Set the same load request as the physical control; safety inhibits still apply.</dd></div>
-          </dl><p>Source-status queries, plan previews, and direct PDO requests still need a full-control firmware image. Black-box inspection uses the compact persistence query directly.</p></div></details>
+          </dl><p>Black-box inspection uses the compact persistence query directly.</p></div></details>
           <details class="reference-card"><summary>Reading diagnostics</summary><div class="reference-content"><dl>
             <div><dt>Hard reset</dt><dd>The direction, firmware cause, and recovery interval are shown. Output permission is cleared immediately.</dd></div><div><dt>Protocol lost</dt><dd>The PD session ended; the card returns to passive retry and USB may disappear if VBUS falls.</dd></div><div><dt>Black box</dt><dd>Shows the latest six of up to 16 RAM events. A falling VDD event commits the journal; live Hard Resets also appear in the terminal.</dd></div><div><dt>RAW transport</dt><dd>Exact USB CDC chunks, not CC packets. Read boundaries are arbitrary.</dd></div><div><dt>Telemetry</dt><dd>20 Hz measured VBUS/current samples. Power is calculated in the browser.</dd></div>
           </dl></div></details>

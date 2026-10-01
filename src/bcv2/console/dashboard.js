@@ -14,9 +14,9 @@
     empty: document.querySelector("#chart-empty"),
     cursor: document.querySelector("#chart-cursor"),
     count: document.querySelector("#sample-count"),
-    voltage: document.querySelector("#header-voltage"),
-    current: document.querySelector("#header-current"),
-    power: document.querySelector("#header-power"),
+    voltage: document.querySelector("#reading-voltage"),
+    current: document.querySelector("#reading-current"),
+    power: document.querySelector("#reading-power"),
     blackBoxButton: document.querySelector("#inspect-black-box"),
     systemStatus: document.querySelector("#system-status"),
     systemDetail: document.querySelector("#system-status-detail"),
@@ -88,7 +88,7 @@
     return telemetryCodec.rollingAverage(source, averageWindowMs).at(-1);
   }
 
-  function updateHeaderReadings() {
+  function updateReadings() {
     const point = displayedLatestSample();
     ui.voltage.textContent = point ? formatValue(point.volts, 2) : "—";
     ui.current.textContent = point ? formatValue(point.amps, 2) : "—";
@@ -218,7 +218,7 @@
     samples.push(point);
     const cutoff = point.hostMs - MAX_HISTORY_MS;
     while (samples.length > 0 && samples[0].hostMs < cutoff) samples.shift();
-    updateHeaderReadings();
+    updateReadings();
     if (sample.flags & (1 << 15)) {
       telemetryWarning = "persistence";
       ui.systemStatus.textContent = "Persistence error";
@@ -329,13 +329,13 @@
     button.addEventListener("click", () => {
       averageWindowMs = Number(button.dataset.averageMs);
       savePreference(STORAGE_AVERAGE, String(averageWindowMs));
-      updateHeaderReadings();
+      updateReadings();
       updateControls();
       scheduleDraw();
     });
   }
   ui.window.addEventListener("change", () => { savePreference(STORAGE_WINDOW, ui.window.value); scheduleDraw(); });
-  ui.clear.addEventListener("click", () => { samples.length = 0; updateHeaderReadings(); updateControls(); scheduleDraw(); });
+  ui.clear.addEventListener("click", () => { samples.length = 0; updateReadings(); updateControls(); scheduleDraw(); });
   ui.export.addEventListener("click", () => {
     const rows = ["host_time_iso,device_timestamp_ms,vbus_v,current_a,power_w", ...samples.map((sample) => `${new Date(sample.hostMs).toISOString()},${sample.deviceMs},${sample.volts.toFixed(3)},${sample.amps.toFixed(3)},${sample.watts.toFixed(3)}`)];
     const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob([`${rows.join("\n")}\n`], { type: "text/csv;charset=utf-8" })); link.download = `bcv2-power-${new Date().toISOString().replaceAll(":", "-")}.csv`; link.click(); setTimeout(() => URL.revokeObjectURL(link.href), 0);
