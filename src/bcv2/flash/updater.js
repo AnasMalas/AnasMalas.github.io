@@ -172,7 +172,7 @@
       setStage("connect");
       await openCard(device);
       await isp.update(isp.usbLink(device), image, { onStage: setStage, onProgress: setProgress });
-      finish("ok", `Done! Your card is on ${firmware.version}. Unplug POWER and plug it back in.`);
+      finish("ok", `Done! Your card restarted on ${firmware.version}.`);
       button.textContent = "Update another card";
     } catch (error) {
       finish("error", messageFor(error));
