@@ -1,10 +1,14 @@
 ---
 layout: layouts/base.njk
 title: The Negotiator II · Anas Malas
-description: How to use BCv2, my USB PD business card power supply.
+description: The Negotiator II, my USB PD 3.1 business card power supply. What it is, how I made it, and how to use it.
 permalink: /bcv2/
 ---
 {% set studioPage = studioContent.pages.bcv2 %}
+{% set img = "/assets/images/posts/bcv2/bcv2-" %}
+{% macro key(label) %}<span class="bcv2-key">{{ label }}</span>{% endmacro %}
+{% macro silk(label) %}<span class="bcv2-silk">{{ label }}</span>{% endmacro %}
+{% macro morse(code) %}<span class="bcv2-morse-code" aria-hidden="true">{% for element in code | list %}{% if element == "." %}<i></i>{% else %}<b></b>{% endif %}{% endfor %}</span>{% endmacro %}
 <article class="note-page bcv2-guide">
   <header class="note-hero shell reading-width">
     <a class="back-link" href="/projects/">← Projects</a>
@@ -13,79 +17,182 @@ permalink: /bcv2/
     <p class="note-dek">My second PCB business card, and a USB PD power supply you can carry anywhere.</p>
   </header>
 
+  <div class="shell reading-width">
+    <a class="bcv2-console-card" href="/bcv2/console/">
+      <span class="bcv2-console-shot">
+        <img src="{{ img }}console-preview-480.webp" srcset="{{ img }}console-preview-480.webp 480w, {{ img }}console-preview-960.webp 960w" sizes="(max-width: 600px) calc(100vw - 40px), 280px" width="960" height="546" alt="" decoding="async">
+      </span>
+      <span class="bcv2-console-copy">
+        <span class="bcv2-console-kicker">The console</span>
+        <span class="bcv2-console-title">See everything your card is doing</span>
+        <span class="bcv2-console-line">Plug the card into your computer or Android phone to watch live graphs of voltage, current and power, see everything your charger offers in detail and request exact voltages.</span>
+        <span class="bcv2-console-go">Open the console <span aria-hidden="true">→</span></span>
+      </span>
+    </a>
+  </div>
+
   <figure class="note-hero-image shell reading-width">
-    <img src="/assets/images/posts/bcv2/01-card-on-powerbank.jpg" width="2000" height="1492" alt="The Negotiator II business card powered from a power bank, with its source capability bar and displays lit" loading="eager" decoding="async">
+    <img src="{{ img }}narrow-700.webp" srcset="{{ img }}narrow-700.webp 700w, {{ img }}narrow-1400.webp 1400w" sizes="(max-width: 730px) calc(100vw - 40px), 690px" width="1400" height="944" alt="The Negotiator II on a power bank outdoors, its capability bar and voltage, current and power displays lit" loading="eager" decoding="async">
   </figure>
 
   <div class="note-body reading-width">
   {% if studioPage and studioPage.bodyHtml %}
     {{ studioPage.bodyHtml | safe }}
   {% else %}
-    <p>So you got one of my business cards, awesome! Its also a tiny USB PD power supply, here's how to use it.</p>
-    <p>Want to see everything its doing? Plug it into your computer and open the <a href="/bcv2/console/">console</a>.</p>
-    <p><em>This page is a work in progress, so check back again soon!</em></p>
+    <details class="bcv2-section" id="about">
+      <summary>
+        <span class="bcv2-section-title">About The Negotiator II</span>
+        <span class="bcv2-section-dek">USB PD 3.1: Unlocked. What it does and how I made it.</span>
+      </summary>
 
-    <h2>What can it do?</h2>
-    <h3>See what your charger offers</h3>
-    <p>Plug it into a USB-C charger and the SOURCE CAPABILITY bar lights up every voltage it can give you, from 5 to 48V. The mode lights show which PD modes it supports (PDO, PPS, SAVS and EAVS), the one its using is brighter. In a few seconds you know if that charger is any good.</p>
-    <h3>Power your projects</h3>
-    <p>Pick a voltage, press APPLY and the card negotiates it with the charger. Then press LOAD ON/OFF to send it to your load. A very slim and portable power supply, all you need is a PD charger and a cable!</p>
+      <ul class="bcv2-specs" aria-label="At a glance">
+        <li>USB PD 3.1</li>
+        <li>5 to 48V in 0.1V steps</li>
+        <li>Up to 5A</li>
+        <li>2 mm thick</li>
+        <li>About 200 LEDs</li>
+        <li>$8 a board</li>
+      </ul>
 
-    <h2>How to use it</h2>
-    <h3>Plug it in</h3>
-    <p>Plug a USB PD charger into the POWER port. The displays show the voltage, current and power going out, and the bar shows what the charger offers.</p>
-    <h3>Hook up your load</h3>
-    <p>Use the WIRE WEDGE (wedge the wires in, or clip a crocodile clip on it), banana plugs, or the 0.1" headers. Keep your load's capacitance under 90uF, its printed on the card too.</p>
-    <h3>Change the voltage or current</h3>
-    <p>Press V/A to choose voltage or current, then FINE + and FINE - for small steps or COARSE + and COARSE - for big ones. The new value blinks until you press APPLY.</p>
-    <p>Dont want to press APPLY every time? hold it for AUTO APPLY, now every change goes through right away. Hold it again to turn it off.</p>
-    <h3>Pick a mode</h3>
-    <p>MODE picks between AUTO, PDO, PPS, SAVS and EAVS. Tap it and the one you're on blinks, tap again to move to the next one, then press APPLY (or just wait 5 seconds). AUTO stays lit dimly while its on. If the new mode cant do your voltage, the card goes to the next one down, never higher.</p>
-    <p>Hold MODE to turn EPR on or off, that's where 28V and up live.</p>
-    <h3>Turn the output on</h3>
-    <p>LOAD ON/OFF turns your output on and off, and LOAD EN lights up when its on. If LOAD EN blinks, the output cant turn on yet, or the change you're making will turn it off when you apply it.</p>
-    <h3>Lock the buttons</h3>
-    <p>Hold V/A for a second so nothing changes in your pocket, and hold it again to unlock. LOAD ON/OFF still works while its locked.</p>
-    <h3>What the lights mean</h3>
-    <p>THERM LIM means the card is dimming its display to keep its regulator happy, which happens at higher voltages. Nothing is wrong.</p>
-    <p>If WARNING blinks, its spelling a letter in Morse code:</p>
-    <ul>
-      <li>R: the charger said no, or it said yes but never gave the voltage (the card tries a few times first).</li>
-      <li>S: your settings couldnt be saved.</li>
-      <li>T: the power dropped out.</li>
-      <li>F: the card lost power a few times while restoring your last setting, so it started with a safer one. Press APPLY to try again.</li>
-    </ul>
+      <p class="bcv2-lead">The Negotiator II is here! USB PD 3.1: Unlocked.</p>
+      <p>USB PD (Power Delivery) is a miracle, behind which is a lot of complexity. USB Chargers today have chips much more powerful than the Apollo 11 moon landing guidance computer, so we cant just grab a charger and get 15V out of it, all that capability is locked away, and the Negotiator is the key.</p>
 
-    <h2>Chargers are all different</h2>
-    <p>Not every charger offers every mode, and some just dont play nice with it. If something doesnt work or acts weird, tell you what, try another cable first - then another charger.</p>
-    <h3>Only seeing 5V?</h3>
-    <p>Then you arent using a full PD power supply, so thats all the card can get. Use a USB PD charger or powerbank thats atleast 20W, laptop chargers are usually the best ones.</p>
-    <h3>Want 28V and up?</h3>
-    <p>You'll need an EPR charger (these are usually 140W or more) and a 240W cable.</p>
+      <p>With the Negotiator II, you can find out exactly what any USB port can do with the capability bar and mode selector. Then, select whatever voltage your charger supports between 5 to 48V in 0.1V increments and you’ll get that. Selecting a voltage will show you what current your charger can provide at that voltage, this card can deliver up to 5A! Apply your selection to initiate the negotiation and you’ll see a live measurement of the voltage, current, and power at the card’s input.</p>
+      <figure class="bcv2-figure">
+        <img src="{{ img }}capabilities-700.webp" srcset="{{ img }}capabilities-700.webp 700w, {{ img }}capabilities-1400.webp 1400w" sizes="(max-width: 730px) calc(100vw - 40px), 690px" width="1400" height="1050" alt="The capability bar lit from 5 to 48V, with the PPS CV and CL lights on" loading="lazy" decoding="async">
+        <figcaption>An EPR charger lights up the whole bar, 5 to 48V.</figcaption>
+      </figure>
 
-    <h2>The console</h2>
-    <h3>Connect</h3>
-    <p>The card has a second USB port, DATA, and it only carries data. Keep your charger in POWER, plug DATA into your computer, then open <a href="/bcv2/console/">anasmalas.com/bcv2/console</a> in Chrome or Edge and press Connect. It works in Chrome on Android too.</p>
-    <h3>What it does</h3>
-    <p>You can see everything your charger offers in detail, request exact voltages, and watch live graphs of voltage, current and power. It also tells you if theres newer firmware for your card and how to update it.</p>
-    <p>If your card restarts on its own, the console reads its black box when it reconnects. Thats a small log of what went wrong.</p>
-    <h3>Bug reports</h3>
-    <p>Bug reports are on by default. When something goes wrong, like the card restarting, the charger saying yes but not giving you the voltage, or the console itself breaking, I get the black box and the log so I can look into it and fix it in the next firmware. It really helps!</p>
-    <p>Dont want that? Hit "Turn off" on the little notice at the top, or untick "Share anonymous bug reports" any time.</p>
-    <p>You can also press "Report a bug" any time and tell me what happened. Or save the report and send it to the email on the card, scan the QR code on the card to add me to your phone contacts quickly :) Emailing it isnt anonymous of course, but the report still has your card's ID removed.</p>
+      <p>Use it to power your load from any USB C charger/powerbank when out on the field. Connect your load using one of the various connector-less solutions shown in the photo below. Im pretty proud of the wire wedge! Its a low profile, quick, and cheap wire-to-board connector. Wedge the wire in, pull it parallel to the board as shown, done! Otherwise, use banana plug, a crocodile clip, or friction fit 0.1” header. At 2 mm thick including the PCB and components, It’s small enough to go into your bag or wallet so you always have a power supply handy.</p>
+      <figure class="bcv2-figure">
+        <img src="{{ img }}connectors-700.webp" srcset="{{ img }}connectors-700.webp 700w, {{ img }}connectors-1400.webp 1400w" sizes="(max-width: 730px) calc(100vw - 40px), 690px" width="1400" height="1038" alt="Header pins pressed into the 0.1 inch holes, banana plugs in the wire wedge holes, and a crocodile clip and a wedged wire on the wire wedge" loading="lazy" decoding="async">
+        <figcaption>0.1” header, banana plugs, and the wire wedge with a crocodile clip and a wire.</figcaption>
+      </figure>
 
-    <h2 id="update">Updating the firmware</h2>
-    <p>Head to <a href="/bcv2/update/">anasmalas.com/bcv2/update</a>, it shows you the easiest way for whatever you're on. On a Mac or an Android phone it updates right in the browser, nothing to install. The console tells you when theres a new one.</p>
+      <p>This was a challenging and rewarding board to design. I managed to get the cost down to $8 per board delivered for a quantity of 100. When you consider all the capabilities, 0.8mm 4-layer ENIG plated PCB, the sheer number of components (including about 200 LEDs!), I think it’s certainly an achievement to be proud of.</p>
 
-    <h2 id="privacy">Bug reports and your data</h2>
-    <h3>What gets sent</h3>
-    <p>Only when something goes wrong, or when you send a report yourself. Turn bug reports off and nothing gets sent unless you hit Send.</p>
-    <p>A report has the firmware version, your browser and system (like Chrome 140 on Windows), what your charger offers, the last minute of voltage and current readings, the console log, the black box, any errors from the console itself, and whatever you wrote.</p>
-    <p>Reports go to this site (anasmalas.com, which runs on Cloudflare) and get deleted after 180 days.</p>
-    <h3>What doesnt</h3>
-    <p>Your card's ID is removed before anything is sent, and your IP address isnt stored. No cookies either, your browser just remembers if you turned reports off. Please dont write personal info in there, I dont need it! The only other thing the console asks this site for is the latest firmware version.</p>
+      <p>Powering around 200 LEDs from 48V was fun, especially trying to do it as cheaply as possible and with components under 1.2 mm thick. I could not afford to use a buck regulator or expensive ultra efficient LEDs. These 0402 LEDs produce 10 mcd (bright enough for outdoors) with less than 0.2 mA and cost $0.004 each. The LDO works well with firmware throttling, feeling warm and not uncomfortable to touch.</p>
 
-    <p>Have fun with it, and tag me when you make something cool :)</p>
+      <p>With the VBUS and CC pins next to each other, a VBUS to CC short at 48V is a real and dangerous possibility. TI’s TPD4S480 is the right chip for the job, However, It costs $1.1 @1k qty. Instead I used depletion mode N-channel mosfets which deplete, cutting off CC and protecting the MCU. I tested shorting 48V to CC input – no current or heat, and negotiation worked afterwards.</p>
+
+      <p>This card shows the USB PD modes, in the photo below, you can see the different modes that this card supports. Auto combines all modes and selects the highest current available at every voltage. PDO cannot do 9.2V, you’ll need PPS or AVS for that. Multiple modes can support the same voltage at different current limits.</p>
+      <figure class="bcv2-figure bcv2-figure-tall">
+        <img src="{{ img }}mode-selections-420.webp" srcset="{{ img }}mode-selections-420.webp 420w, {{ img }}mode-selections-840.webp 840w" sizes="(max-width: 460px) calc(100vw - 40px), 420px" width="840" height="1490" alt="The PD mode lights and the capability bar in AUTO, PDO and PPS on the same charger, each lighting a different set of voltages" loading="lazy" decoding="async">
+        <figcaption>AUTO, PDO and PPS on the same charger.</figcaption>
+      </figure>
+
+      <p>To make this card a reality, I had to write a library for it. I plan on open sourcing the PD version of that and releasing <em>the</em> cheapest PD 3.1 Sink design, ever. So check back here soon!</p>
+    </details>
+
+    <details class="bcv2-section" id="instructions">
+      <summary>
+        <span class="bcv2-section-title">Instructions</span>
+        <span class="bcv2-section-dek">Got one of my cards? Heres how to use it.</span>
+      </summary>
+
+      <p>So you got one of my business cards, awesome! Its also a tiny USB PD power supply, here's how to use it.</p>
+      <p>Want to see everything its doing? Plug it into your computer and open the <a href="/bcv2/console/">console</a>.</p>
+      <p><em>This page is a work in progress, so check back again soon!</em></p>
+
+      <h3>What can it do?</h3>
+      <h4>See what your charger offers</h4>
+      <p>Plug it into a USB-C charger and the {{ silk("SOURCE CAPABILITY") }} bar lights up every voltage it can give you, from 5 to 48V. The mode lights show which PD modes it supports (PDO, PPS, SAVS and EAVS), the one its using is brighter. In a few seconds you know if that charger is any good.</p>
+      <h4>Power your projects</h4>
+      <p>Pick a voltage, press {{ key("APPLY") }} and the card negotiates it with the charger. Then press {{ key("LOAD ON/OFF") }} to send it to your load. A very slim and portable power supply, all you need is a PD charger and a cable!</p>
+
+      <h3>How to use it</h3>
+      <div class="bcv2-steps">
+        <h4>Plug it in</h4>
+        <p>Plug a USB PD charger into the {{ silk("POWER") }} port. The displays show the voltage, current and power going out, and the bar shows what the charger offers.</p>
+
+        <h4>Hook up your load</h4>
+        <p>Use the {{ silk("WIRE WEDGE") }}, banana plugs, or the 0.1" headers. Wedge the wire in like below, or just clip a crocodile clip on it. Keep your load's capacitance under 90uF, its printed on the card too.</p>
+        <figure class="bcv2-figure">
+          <img src="{{ img }}wire-wedge-700.webp" srcset="{{ img }}wire-wedge-700.webp 700w, {{ img }}wire-wedge-1400.webp 1400w" sizes="(max-width: 730px) calc(100vw - 40px), 690px" width="1400" height="1019" alt="A crocodile clip on the top bar of the wire wedge and a wire wedged under the bottom bar, pulled along the board" loading="lazy" decoding="async">
+          <figcaption>A crocodile clip on top, a wedged wire on the bottom.</figcaption>
+        </figure>
+
+        <h4>Change the voltage or current</h4>
+        <p>Press {{ key("V/A") }} to choose voltage or current, then {{ key("FINE +") }} and {{ key("FINE −") }} for small steps or {{ key("COARSE +") }} and {{ key("COARSE −") }} for big ones. The new value blinks until you press {{ key("APPLY") }}.</p>
+        <p>Dont want to press {{ key("APPLY") }} every time? hold it for {{ silk("AUTO APPLY") }}, now every change goes through right away. Hold it again to turn it off.</p>
+
+        <h4>Pick a mode</h4>
+        <p>{{ key("MODE") }} picks between AUTO, PDO, PPS, SAVS and EAVS. Tap it and the one you're on blinks, tap again to move to the next one, then press {{ key("APPLY") }} (or just wait 5 seconds). AUTO stays lit dimly while its on.</p>
+        <p>If the new mode cant do your voltage, the card goes to the next one down. If it has nothing lower, it goes up to the lowest one it has: your old voltage flashes fast as a warning, and the load turns off before it changes. Want to go up with the load still on? Pick the higher voltage in AUTO.</p>
+        <p>Hold {{ key("MODE") }} to turn EPR on or off, that's where 28V and up live.</p>
+
+        <h4>Turn the output on</h4>
+        <p>{{ key("LOAD ON/OFF") }} turns your output on and off, and {{ silk("LOAD EN") }} lights up when its on. If {{ silk("LOAD EN") }} blinks, the output cant turn on yet, or the change you're making will turn it off when you apply it.</p>
+
+        <h4>Lock the buttons</h4>
+        <p>Hold {{ key("V/A") }} for a second so nothing changes in your pocket, and hold it again to unlock. {{ key("LOAD ON/OFF") }} still works while its locked.</p>
+      </div>
+
+      <div class="bcv2-panel">
+        <h3>What the lights mean</h3>
+        <p>{{ silk("THERM LIM") }} means the card is dimming its display to keep its regulator happy, which happens at higher voltages. Nothing is wrong.</p>
+        <p>{{ silk("PPS CV") }} and {{ silk("PPS CL") }} glow dimly whenever you're on PPS. The bright one shows if the charger is holding your voltage (CV) or limiting your current (CL).</p>
+        <p>If {{ silk("WARNING") }} blinks, its spelling a letter in Morse code:</p>
+        <ul class="bcv2-morse">
+          <li><strong>R</strong>{{ morse(".-.") }}<span>the charger said no, or it said yes but never gave the voltage (the card tries a few times first).</span></li>
+          <li><strong>S</strong>{{ morse("...") }}<span>your settings couldnt be saved.</span></li>
+          <li><strong>T</strong>{{ morse("-") }}<span>the power dropped out.</span></li>
+          <li><strong>F</strong>{{ morse("..-.") }}<span>the card lost power a few times while restoring your last setting, so it started with a safer one. Press {{ key("APPLY") }} to try again.</span></li>
+        </ul>
+      </div>
+
+      <h3>Chargers are all different</h3>
+      <p>Not every charger offers every mode, and some just dont play nice with it. If something doesnt work or acts weird, tell you what, try another cable first - then another charger.</p>
+      <div class="bcv2-tips">
+        <div class="bcv2-tip">
+          <h4>Only seeing 5V?</h4>
+          <p>Then you arent using a full PD power supply, so thats all the card can get. Use a USB PD charger or powerbank thats atleast 20W, laptop chargers are usually the best ones.</p>
+        </div>
+        <div class="bcv2-tip">
+          <h4>Want 28V and up?</h4>
+          <p>You'll need an EPR charger (these are usually 140W or more) and a 240W cable.</p>
+        </div>
+      </div>
+
+      <h3>The console</h3>
+      <h4>Connect</h4>
+      <p>The card has a second USB port, {{ silk("DATA") }}, and it only carries data. Keep your charger in {{ silk("POWER") }}, plug {{ silk("DATA") }} into your computer, then open <a href="/bcv2/console/">anasmalas.com/bcv2/console</a> in Chrome or Edge and press Connect. It works in Chrome on Android too.</p>
+      <h4>What it does</h4>
+      <p>You can see everything your charger offers in detail, request exact voltages, and watch live graphs of voltage, current and power. It also tells you if theres newer firmware for your card and how to update it.</p>
+      <p>If your card restarts on its own, the console reads its black box when it reconnects. Thats a small log of what went wrong.</p>
+      <h4>Bug reports</h4>
+      <p>Bug reports are on by default. When something goes wrong, like the card restarting, the charger saying yes but not giving you the voltage, or the console itself breaking, I get the black box and the log so I can look into it and fix it in the next firmware. It really helps!</p>
+      <p>Dont want that? Hit "Turn off" on the little notice at the top, or untick "Share anonymous bug reports" any time.</p>
+      <p>You can also press "Report a bug" any time and tell me what happened. Or save the report and send it to the email on the card, scan the QR code on the card to add me to your phone contacts quickly :) Emailing it isnt anonymous of course, but the report still has your card's ID removed.</p>
+
+      <h3 id="update">Updating the firmware</h3>
+      <p class="bcv2-callout">Head to <a href="/bcv2/update/">anasmalas.com/bcv2/update</a>, it shows you the easiest way for whatever you're on. On a Mac or an Android phone it updates right in the browser, nothing to install. The console tells you when theres a new one.</p>
+
+      <h3 id="privacy">Bug reports and your data</h3>
+      <h4>What gets sent</h4>
+      <p>Only when something goes wrong, or when you send a report yourself. Turn bug reports off and nothing gets sent unless you hit Send.</p>
+      <p>A report has the firmware version, your browser and system (like Chrome 140 on Windows), what your charger offers, the last minute of voltage and current readings, the console log, the black box, any errors from the console itself, and whatever you wrote.</p>
+      <p>Reports go to this site (anasmalas.com, which runs on Cloudflare) and get deleted after 180 days.</p>
+      <h4>What doesnt</h4>
+      <p>Your card's ID is removed before anything is sent, and your IP address isnt stored. No cookies either, your browser just remembers if you turned reports off. Please dont write personal info in there, I dont need it! The only other thing the console asks this site for is the latest firmware version.</p>
+    </details>
+
+    <p class="bcv2-signoff">Have fun with it, and tag me when you make something cool :)</p>
   {% endif %}
   </div>
 </article>
+<script>
+  // Links like /bcv2/#privacy point inside a closed section: open it first.
+  (() => {
+    const reveal = () => {
+      const id = decodeURIComponent(location.hash.slice(1));
+      const target = id && document.getElementById(id);
+      const section = target && target.closest("details");
+      if (!section || section.open) return;
+      section.open = true;
+      target.scrollIntoView();
+    };
+    reveal();
+    addEventListener("hashchange", reveal);
+  })();
+</script>

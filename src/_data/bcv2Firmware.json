@@ -1,11 +1,11 @@
 {
   "schema": 1,
   "product": {
-    "latest": "0x01050043",
-    "date": "2026-10-01",
+    "latest": "0x01050045",
+    "date": "2026-10-05",
     "notes": "",
-    "download": "https://anasmalas.com/assets/bcv2/firmware/bcv2-rev1-product-01050043.bin",
-    "sha256": "17ee175937f9c0a33bfab960ed8ba898da21629c1b7f0dd68ac219283a724815",
+    "download": "https://anasmalas.com/assets/bcv2/firmware/bcv2-rev1-product-01050045.bin",
+    "sha256": "731e5121191f9e0dafd28ad7799453640b3682d09e614372ac053e033b03e59e",
     "diagnostic": [
       "0x01050014",
       "0x01050026",
