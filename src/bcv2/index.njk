@@ -32,17 +32,16 @@ permalink: /bcv2/
   </div>
 
   <figure class="note-hero-image shell reading-width">
-    <img src="{{ img }}narrow-700.webp" srcset="{{ img }}narrow-700.webp 700w, {{ img }}narrow-1400.webp 1400w" sizes="(max-width: 730px) calc(100vw - 40px), 690px" width="1400" height="944" alt="The Negotiator II on a power bank outdoors, its capability bar and voltage, current and power displays lit" loading="eager" decoding="async">
+    <img src="{{ img }}narrow-700.webp" srcset="{{ img }}narrow-700.webp 700w, {{ img }}narrow-1400.webp 1400w" sizes="(max-width: 860px) calc(100vw - 40px), 820px" width="1400" height="944" alt="The Negotiator II on a power bank outdoors, its capability bar and voltage, current and power displays lit" loading="eager" fetchpriority="high" decoding="async">
   </figure>
 
   <div class="note-body reading-width">
   {% if studioPage and studioPage.bodyHtml %}
     {{ studioPage.bodyHtml | safe }}
   {% else %}
-    <details class="bcv2-section" id="about">
+    <details class="bcv2-section" id="about" open>
       <summary>
         <span class="bcv2-section-title">About The Negotiator II</span>
-        <span class="bcv2-section-dek">USB PD 3.1: Unlocked. What it does and how I made it.</span>
       </summary>
 
       <ul class="bcv2-specs" aria-label="At a glance">
@@ -59,13 +58,13 @@ permalink: /bcv2/
 
       <p>With the Negotiator II, you can find out exactly what any USB port can do with the capability bar and mode selector. Then, select whatever voltage your charger supports between 5 to 48V in 0.1V increments and you’ll get that. Selecting a voltage will show you what current your charger can provide at that voltage, this card can deliver up to 5A! Apply your selection to initiate the negotiation and you’ll see a live measurement of the voltage, current, and power at the card’s input.</p>
       <figure class="bcv2-figure">
-        <img src="{{ img }}capabilities-700.webp" srcset="{{ img }}capabilities-700.webp 700w, {{ img }}capabilities-1400.webp 1400w" sizes="(max-width: 730px) calc(100vw - 40px), 690px" width="1400" height="1050" alt="The capability bar lit from 5 to 48V, with the PPS CV and CL lights on" loading="lazy" decoding="async">
+        <img src="{{ img }}capabilities-700.webp" srcset="{{ img }}capabilities-700.webp 700w, {{ img }}capabilities-1400.webp 1400w" sizes="(max-width: 860px) calc(100vw - 40px), 820px" width="1400" height="1050" alt="The capability bar lit from 5 to 48V, with the PPS CV and CL lights on" loading="lazy" decoding="async">
         <figcaption>An EPR charger lights up the whole bar, 5 to 48V.</figcaption>
       </figure>
 
       <p>Use it to power your load from any USB C charger/powerbank when out on the field. Connect your load using one of the various connector-less solutions shown in the photo below. Im pretty proud of the wire wedge! Its a low profile, quick, and cheap wire-to-board connector. Wedge the wire in, pull it parallel to the board as shown, done! Otherwise, use banana plug, a crocodile clip, or friction fit 0.1” header. At 2 mm thick including the PCB and components, It’s small enough to go into your bag or wallet so you always have a power supply handy.</p>
       <figure class="bcv2-figure">
-        <img src="{{ img }}connectors-700.webp" srcset="{{ img }}connectors-700.webp 700w, {{ img }}connectors-1400.webp 1400w" sizes="(max-width: 730px) calc(100vw - 40px), 690px" width="1400" height="1038" alt="Header pins pressed into the 0.1 inch holes, banana plugs in the wire wedge holes, and a crocodile clip and a wedged wire on the wire wedge" loading="lazy" decoding="async">
+        <img src="{{ img }}connectors-700.webp" srcset="{{ img }}connectors-700.webp 700w, {{ img }}connectors-1400.webp 1400w" sizes="(max-width: 860px) calc(100vw - 40px), 820px" width="1400" height="1038" alt="Header pins pressed into the 0.1 inch holes, banana plugs in the wire wedge holes, and a crocodile clip and a wedged wire on the wire wedge" loading="lazy" decoding="async">
         <figcaption>0.1” header, banana plugs, and the wire wedge with a crocodile clip and a wire.</figcaption>
       </figure>
 
@@ -108,7 +107,7 @@ permalink: /bcv2/
         <h4>Hook up your load</h4>
         <p>Use the {{ silk("WIRE WEDGE") }}, banana plugs, or the 0.1" headers. Wedge the wire in like below, or just clip a crocodile clip on it. Keep your load's capacitance under 90uF, its printed on the card too.</p>
         <figure class="bcv2-figure">
-          <img src="{{ img }}wire-wedge-700.webp" srcset="{{ img }}wire-wedge-700.webp 700w, {{ img }}wire-wedge-1400.webp 1400w" sizes="(max-width: 730px) calc(100vw - 40px), 690px" width="1400" height="1019" alt="A crocodile clip on the top bar of the wire wedge and a wire wedged under the bottom bar, pulled along the board" loading="lazy" decoding="async">
+          <img src="{{ img }}wire-wedge-700.webp" srcset="{{ img }}wire-wedge-700.webp 700w, {{ img }}wire-wedge-1400.webp 1400w" sizes="(max-width: 860px) calc(100vw - 40px), 820px" width="1400" height="1019" alt="A crocodile clip on the top bar of the wire wedge and a wire wedged under the bottom bar, pulled along the board" loading="lazy" decoding="async">
           <figcaption>A crocodile clip on top, a wedged wire on the bottom.</figcaption>
         </figure>
 

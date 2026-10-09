@@ -1024,3 +1024,21 @@ html[data-theme="dark"] { --bg: #181818; --paper: #202020; --ink: #eee; --muted:
   .bcv2-panel { padding-inline: 16px; }
   .note-body .bcv2-morse li { grid-template-columns: 22px 56px 1fr; gap: 8px; }
 }
+
+/* BCv2 guide on desktop: a wider column and tighter spacing. */
+@media (min-width: 900px) {
+  .bcv2-guide .reading-width { width: min(820px, calc(100% - 40px)); }
+  .bcv2-guide .note-hero { padding-top: 34px; }
+  .bcv2-guide .back-link { margin-bottom: 18px; }
+  .bcv2-guide .note-title { margin: 6px 0 12px; }
+  .bcv2-guide .note-dek { margin-bottom: 20px; }
+  .bcv2-guide .note-hero-image { padding-top: 20px; }
+  .bcv2-guide .note-body { padding-block: 16px 40px; line-height: 1.7; }
+  .bcv2-guide .note-body p, .bcv2-guide .note-body ul { margin-bottom: 1.05em; }
+  .bcv2-section > summary { padding: 16px 0; }
+  .bcv2-section[open] { padding-bottom: 18px; }
+  .note-body .bcv2-section h3 { margin-top: 1.5em; }
+  .note-body .bcv2-section h4 { margin-top: 1.2em; }
+  .bcv2-figure { margin: 1.2em 0 1.5em; }
+  .bcv2-panel { margin: 1.6em 0; }
+}
