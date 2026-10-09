@@ -64,27 +64,15 @@ permalink: /bcv2/
 
       <p>Use it to power your load from any USB C charger/powerbank when out on the field. Connect your load using one of the various connector-less solutions shown in the photo below. Im pretty proud of the wire wedge! Its a low profile, quick, and cheap wire-to-board connector. Wedge the wire in, pull it parallel to the board as shown, done! Otherwise, use banana plug, a crocodile clip, or friction fit 0.1” header. At 2 mm thick including the PCB and components, It’s small enough to go into your bag or wallet so you always have a power supply handy.</p>
       <figure class="bcv2-figure bcv2-figure-clear">
-        <img src="{{ img }}connectors-clear-700.webp" srcset="{{ img }}connectors-clear-700.webp 700w, {{ img }}connectors-clear-1400.webp 1400w" sizes="(max-width: 860px) calc(100vw - 40px), 820px" width="1400" height="1038" alt="Header pins pressed into the 0.1 inch holes, banana plugs in the wire wedge holes, and a crocodile clip and a wedged wire on the wire wedge" loading="lazy" decoding="async">
+        <img src="{{ img }}connectors-v3-700.webp" srcset="{{ img }}connectors-v3-700.webp 700w, {{ img }}connectors-v3-1400.webp 1400w" sizes="(max-width: 860px) calc(100vw - 40px), 820px" width="1400" height="1038" alt="Header pins pressed into the 0.1 inch holes, banana plugs in the wire wedge holes, and a crocodile clip and a wedged wire on the wire wedge" loading="lazy" decoding="async">
         <figcaption>0.1” header, banana plugs, and the wire wedge with a crocodile clip and a wire.</figcaption>
-      </figure>
-      <figure class="bcv2-figure bcv2-figure-side">
-        <img src="{{ img }}airport-420.webp" srcset="{{ img }}airport-420.webp 420w, {{ img }}airport-840.webp 840w" sizes="(max-width: 899px) 300px, 240px" width="840" height="1493" alt="The Negotiator II plugged into a travel charger on an airport window ledge, with planes on the apron behind it" loading="lazy" decoding="async">
-        <figcaption>On a travel charger at the airport.</figcaption>
       </figure>
 
       <p>This was a challenging and rewarding board to design. I managed to get the cost down to $8 per board delivered for a quantity of 100. When you consider all the capabilities, 0.8mm 4-layer ENIG plated PCB, the sheer number of components (including about 200 LEDs!), I think it’s certainly an achievement to be proud of.</p>
 
       <p>Powering around 200 LEDs from 48V was fun, especially trying to do it as cheaply as possible and with components under 1.2 mm thick. I could not afford to use a buck regulator or expensive ultra efficient LEDs. These 0402 LEDs produce 10 mcd (bright enough for outdoors) with less than 0.2 mA and cost $0.004 each. The LDO works well with firmware throttling, feeling warm and not uncomfortable to touch.</p>
 
-      <figure class="bcv2-figure">
-        <img src="{{ img }}batch-700.webp" srcset="{{ img }}batch-700.webp 700w, {{ img }}batch-1400.webp 1400w" sizes="(max-width: 860px) calc(100vw - 40px), 820px" width="1400" height="1135" alt="Seven Negotiator II cards lit up on a desk, each powered by its own USB charger or power bank" loading="lazy" decoding="async">
-        <figcaption>Seven of them running at once.</figcaption>
-      </figure>
 
-      <figure class="bcv2-figure bcv2-figure-side bcv2-figure-left">
-        <img src="{{ img }}garden-480.webp" srcset="{{ img }}garden-480.webp 480w, {{ img }}garden-960.webp 960w" sizes="(max-width: 899px) 300px, 240px" width="960" height="1280" alt="The Negotiator II on a power bank on a tree stump in a Japanese garden, a stone lantern and a red maple behind it" loading="lazy" decoding="async">
-        <figcaption>Bright enough for outdoors.</figcaption>
-      </figure>
       <p>With the VBUS and CC pins next to each other, a VBUS to CC short at 48V is a real and dangerous possibility. TI’s TPD4S480 is the right chip for the job, However, It costs $1.1 @1k qty. Instead I used depletion mode N-channel mosfets which deplete, cutting off CC and protecting the MCU. I tested shorting 48V to CC input – no current or heat, and negotiation worked afterwards.</p>
 
       <p>This card shows the USB PD modes, in the photo below, you can see the different modes that this card supports. Auto combines all modes and selects the highest current available at every voltage. PDO cannot do 9.2V, you’ll need PPS or AVS for that. Multiple modes can support the same voltage at different current limits.</p>
@@ -94,6 +82,30 @@ permalink: /bcv2/
       </figure>
 
       <p>To make this card a reality, I had to write a library for it. I plan on open sourcing the PD version of that and releasing <em>the</em> cheapest PD 3.1 Sink design, ever. So check back here soon!</p>
+
+      <h3>More photos</h3>
+      <div class="bcv2-gallery">
+        <div class="bcv2-gallery-row">
+          <figure style="--ar: 1.333">
+            <img src="{{ img }}front-lit-700.webp" srcset="{{ img }}front-lit-700.webp 700w, {{ img }}front-lit-1400.webp 1400w" sizes="(max-width: 600px) calc(100vw - 40px), 420px" width="1400" height="1050" alt="The front of the card with every light on: the capability bar, the voltage, current and power digits, and the status and mode lights" loading="lazy" decoding="async">
+            <figcaption>Every light on.</figcaption>
+          </figure>
+          <figure style="--ar: 1.233">
+            <img src="{{ img }}batch-700.webp" srcset="{{ img }}batch-700.webp 700w, {{ img }}batch-1400.webp 1400w" sizes="(max-width: 600px) calc(100vw - 40px), 400px" width="1400" height="1135" alt="Seven Negotiator II cards lit up on a desk, each powered by its own USB charger or power bank" loading="lazy" decoding="async">
+            <figcaption>Seven of them running at once.</figcaption>
+          </figure>
+        </div>
+        <div class="bcv2-gallery-row">
+          <figure style="--ar: 0.75">
+            <img src="{{ img }}garden-480.webp" srcset="{{ img }}garden-480.webp 480w, {{ img }}garden-960.webp 960w" sizes="(max-width: 600px) calc(100vw - 40px), 470px" width="960" height="1280" alt="The Negotiator II on a power bank on a tree stump in a Japanese garden, a stone lantern and a red maple behind it" loading="lazy" decoding="async">
+            <figcaption>Bright enough for outdoors.</figcaption>
+          </figure>
+          <figure style="--ar: 0.5625">
+            <img src="{{ img }}airport-420.webp" srcset="{{ img }}airport-420.webp 420w, {{ img }}airport-840.webp 840w" sizes="(max-width: 600px) calc(100vw - 40px), 350px" width="840" height="1493" alt="The Negotiator II plugged into a travel charger on an airport window ledge, with planes on the apron behind it" loading="lazy" decoding="async">
+            <figcaption>On a travel charger at the airport.</figcaption>
+          </figure>
+        </div>
+      </div>
     </details>
 
     <details class="bcv2-section" id="instructions">
@@ -113,10 +125,6 @@ permalink: /bcv2/
       <p>Pick a voltage, press {{ key("APPLY") }} and the card negotiates it with the charger. Then press {{ key("LOAD ON/OFF") }} to send it to your load. A very slim and portable power supply, all you need is a PD charger and a cable!</p>
 
       <h3>How to use it</h3>
-      <figure class="bcv2-figure">
-        <img src="{{ img }}front-lit-700.webp" srcset="{{ img }}front-lit-700.webp 700w, {{ img }}front-lit-1400.webp 1400w" sizes="(max-width: 860px) calc(100vw - 40px), 820px" width="1400" height="1050" alt="The front of the card with every light on: the capability bar, the voltage, current and power digits, and the status and mode lights" loading="lazy" decoding="async">
-        <figcaption>Every light on, so you can find all the buttons and lights.</figcaption>
-      </figure>
       <div class="bcv2-steps">
         <h4>Plug it in</h4>
         <p>Plug a USB PD charger into the {{ silk("POWER") }} port. The displays show the voltage, current and power going out, and the bar shows what the charger offers.</p>
