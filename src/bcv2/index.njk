@@ -68,7 +68,7 @@ permalink: /bcv2/
         <figcaption>0.1” header, banana plugs, and the wire wedge with a crocodile clip and a wire.</figcaption>
       </figure>
       <figure class="bcv2-figure bcv2-figure-side">
-        <img src="{{ img }}airport-420.webp" srcset="{{ img }}airport-420.webp 420w, {{ img }}airport-840.webp 840w" sizes="(max-width: 899px) 300px, 260px" width="840" height="1493" alt="The Negotiator II plugged into a travel charger on an airport window ledge, with planes on the apron behind it" loading="lazy" decoding="async">
+        <img src="{{ img }}airport-420.webp" srcset="{{ img }}airport-420.webp 420w, {{ img }}airport-840.webp 840w" sizes="(max-width: 899px) 300px, 240px" width="840" height="1493" alt="The Negotiator II plugged into a travel charger on an airport window ledge, with planes on the apron behind it" loading="lazy" decoding="async">
         <figcaption>On a travel charger at the airport.</figcaption>
       </figure>
 
@@ -76,6 +76,15 @@ permalink: /bcv2/
 
       <p>Powering around 200 LEDs from 48V was fun, especially trying to do it as cheaply as possible and with components under 1.2 mm thick. I could not afford to use a buck regulator or expensive ultra efficient LEDs. These 0402 LEDs produce 10 mcd (bright enough for outdoors) with less than 0.2 mA and cost $0.004 each. The LDO works well with firmware throttling, feeling warm and not uncomfortable to touch.</p>
 
+      <figure class="bcv2-figure">
+        <img src="{{ img }}batch-700.webp" srcset="{{ img }}batch-700.webp 700w, {{ img }}batch-1400.webp 1400w" sizes="(max-width: 860px) calc(100vw - 40px), 820px" width="1400" height="1135" alt="Seven Negotiator II cards lit up on a desk, each powered by its own USB charger or power bank" loading="lazy" decoding="async">
+        <figcaption>Seven of them running at once.</figcaption>
+      </figure>
+
+      <figure class="bcv2-figure bcv2-figure-side bcv2-figure-left">
+        <img src="{{ img }}garden-480.webp" srcset="{{ img }}garden-480.webp 480w, {{ img }}garden-960.webp 960w" sizes="(max-width: 899px) 300px, 240px" width="960" height="1280" alt="The Negotiator II on a power bank on a tree stump in a Japanese garden, a stone lantern and a red maple behind it" loading="lazy" decoding="async">
+        <figcaption>Bright enough for outdoors.</figcaption>
+      </figure>
       <p>With the VBUS and CC pins next to each other, a VBUS to CC short at 48V is a real and dangerous possibility. TI’s TPD4S480 is the right chip for the job, However, It costs $1.1 @1k qty. Instead I used depletion mode N-channel mosfets which deplete, cutting off CC and protecting the MCU. I tested shorting 48V to CC input – no current or heat, and negotiation worked afterwards.</p>
 
       <p>This card shows the USB PD modes, in the photo below, you can see the different modes that this card supports. Auto combines all modes and selects the highest current available at every voltage. PDO cannot do 9.2V, you’ll need PPS or AVS for that. Multiple modes can support the same voltage at different current limits.</p>

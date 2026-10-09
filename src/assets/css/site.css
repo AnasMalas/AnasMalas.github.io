@@ -1039,7 +1039,7 @@ html[data-theme="dark"] { --bg: #181818; --paper: #202020; --ink: #eee; --muted:
   .bcv2-section[open] { padding-bottom: 18px; }
   .note-body .bcv2-section h3 { margin-top: 1.5em; }
   .note-body .bcv2-section h4 { margin-top: 1.2em; }
-  .bcv2-figure { margin: 1.2em 0 1.5em; }
+  .bcv2-figure { margin-block: 1.2em 1.5em; }
   .bcv2-panel { margin: 1.6em 0; }
 }
 
@@ -1048,5 +1048,6 @@ html[data-theme="dark"] { --bg: #181818; --paper: #202020; --ink: #eee; --muted:
 .bcv2-figure-clear img { border: 0; background: none; }
 .bcv2-figure-side { max-width: 300px; margin-inline: auto; }
 @media (min-width: 900px) {
-  .bcv2-figure-side { float: right; clear: right; width: 260px; margin: .3em 0 1em 28px; }
+  .bcv2-figure-side { float: right; clear: right; width: 240px; margin: .3em 0 1em 28px; }
+  .bcv2-figure-left { float: left; clear: left; margin: .3em 28px 1em 0; }
 }
