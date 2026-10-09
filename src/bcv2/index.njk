@@ -63,9 +63,13 @@ permalink: /bcv2/
       </figure>
 
       <p>Use it to power your load from any USB C charger/powerbank when out on the field. Connect your load using one of the various connector-less solutions shown in the photo below. Im pretty proud of the wire wedge! Its a low profile, quick, and cheap wire-to-board connector. Wedge the wire in, pull it parallel to the board as shown, done! Otherwise, use banana plug, a crocodile clip, or friction fit 0.1” header. At 2 mm thick including the PCB and components, It’s small enough to go into your bag or wallet so you always have a power supply handy.</p>
-      <figure class="bcv2-figure">
-        <img src="{{ img }}connectors-700.webp" srcset="{{ img }}connectors-700.webp 700w, {{ img }}connectors-1400.webp 1400w" sizes="(max-width: 860px) calc(100vw - 40px), 820px" width="1400" height="1038" alt="Header pins pressed into the 0.1 inch holes, banana plugs in the wire wedge holes, and a crocodile clip and a wedged wire on the wire wedge" loading="lazy" decoding="async">
+      <figure class="bcv2-figure bcv2-figure-clear">
+        <img src="{{ img }}connectors-clear-700.webp" srcset="{{ img }}connectors-clear-700.webp 700w, {{ img }}connectors-clear-1400.webp 1400w" sizes="(max-width: 860px) calc(100vw - 40px), 820px" width="1400" height="1038" alt="Header pins pressed into the 0.1 inch holes, banana plugs in the wire wedge holes, and a crocodile clip and a wedged wire on the wire wedge" loading="lazy" decoding="async">
         <figcaption>0.1” header, banana plugs, and the wire wedge with a crocodile clip and a wire.</figcaption>
+      </figure>
+      <figure class="bcv2-figure bcv2-figure-side">
+        <img src="{{ img }}airport-420.webp" srcset="{{ img }}airport-420.webp 420w, {{ img }}airport-840.webp 840w" sizes="(max-width: 899px) 300px, 260px" width="840" height="1493" alt="The Negotiator II plugged into a travel charger on an airport window ledge, with planes on the apron behind it" loading="lazy" decoding="async">
+        <figcaption>On a travel charger at the airport.</figcaption>
       </figure>
 
       <p>This was a challenging and rewarding board to design. I managed to get the cost down to $8 per board delivered for a quantity of 100. When you consider all the capabilities, 0.8mm 4-layer ENIG plated PCB, the sheer number of components (including about 200 LEDs!), I think it’s certainly an achievement to be proud of.</p>
@@ -100,6 +104,10 @@ permalink: /bcv2/
       <p>Pick a voltage, press {{ key("APPLY") }} and the card negotiates it with the charger. Then press {{ key("LOAD ON/OFF") }} to send it to your load. A very slim and portable power supply, all you need is a PD charger and a cable!</p>
 
       <h3>How to use it</h3>
+      <figure class="bcv2-figure">
+        <img src="{{ img }}front-lit-700.webp" srcset="{{ img }}front-lit-700.webp 700w, {{ img }}front-lit-1400.webp 1400w" sizes="(max-width: 860px) calc(100vw - 40px), 820px" width="1400" height="1050" alt="The front of the card with every light on: the capability bar, the voltage, current and power digits, and the status and mode lights" loading="lazy" decoding="async">
+        <figcaption>Every light on, so you can find all the buttons and lights.</figcaption>
+      </figure>
       <div class="bcv2-steps">
         <h4>Plug it in</h4>
         <p>Plug a USB PD charger into the {{ silk("POWER") }} port. The displays show the voltage, current and power going out, and the bar shows what the charger offers.</p>
