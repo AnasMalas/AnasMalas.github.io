@@ -14,6 +14,17 @@
 <meta property="og:url" content="{{ canonical }}">
 <meta property="og:site_name" content="{{ site.name }}">
 <meta name="twitter:card" content="summary_large_image">
+{# Link previews (X, LinkedIn, chat apps) need an absolute image URL. A page
+   sets shareImage (a 1200x630 JPEG under /assets) and shareImageAlt. #}
+{% if shareImage %}
+<meta property="og:image" content="{{ site.url + shareImage }}">
+<meta property="og:image:type" content="image/jpeg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="{{ shareImageAlt }}">
+<meta name="twitter:image" content="{{ site.url + shareImage }}">
+<meta name="twitter:image:alt" content="{{ shareImageAlt }}">
+{% endif %}
 <title>{{ pageTitle }}</title>
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link rel="alternate" type="application/atom+xml" title="{{ site.name }} notes" href="/feed.xml">
