@@ -7,12 +7,12 @@
     <meta name="theme-color" content="#0b0f12">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src https://anasmalas.com; object-src 'none'; base-uri 'none'; form-action 'none'">
     <title>The Negotiator II Power Control</title>
-    <link rel="stylesheet" href="styles.css?v=d547856b72">
-    <script src="protocol.js?v=ed55ccd959" defer></script>
+    <link rel="stylesheet" href="styles.css?v=f30056a3e4">
+    <script src="protocol.js?v=1f3e27c607" defer></script>
     <script src="console-log.js?v=010ae64352" defer></script>
     <script src="product-telemetry.js?v=6c0e011221" defer></script>
     <script src="support.js?v=07c0a393b3" defer></script>
-    <script src="app.js?v=a98979c97b" defer></script>
+    <script src="app.js?v=05cc78c464" defer></script>
     <script src="dashboard.js?v=aa0c8dc1d8" defer></script>
   </head>
   <body>
@@ -45,12 +45,14 @@
             <label class="preference-field"><span>Supply</span><select id="preference-input"><option value="auto">Automatic</option><option value="fixed">Fixed PDO</option><option value="pps">PPS</option><option value="spr-avs">SPR AVS</option><option value="epr-avs">EPR AVS</option></select></label>
             <button class="button button-primary request-submit" type="submit" disabled>Request</button>
           </form>
-          <div class="ramp-row">
-            <label class="ramp-toggle"><input id="ramp-enabled" type="checkbox"> Ramp requests <em>(charger dependent)</em></label>
-            <label class="ramp-field">over <input id="ramp-ms" type="number" inputmode="numeric" min="0" max="600000" step="100" value="2000" disabled> ms</label>
-            <label class="ramp-field">in <select id="ramp-step" class="compact-select" disabled><option value="100">0.1 V</option><option value="500">0.5 V</option><option value="1000" selected>1 V</option><option value="5000">5 V</option><option value="10000">10 V</option></select> steps</label>
+          <div class="ramp-box">
+            <div class="ramp-row">
+              <label class="ramp-toggle"><input id="ramp-enabled" type="checkbox"> Ramp requests <em>(charger dependent)</em></label>
+              <label class="ramp-field">over <input id="ramp-ms" type="number" inputmode="numeric" min="0" max="600000" step="100" value="2000" disabled> ms</label>
+              <label class="ramp-field">at <select id="ramp-rate" class="compact-select" disabled><option value="10">10</option><option value="5" selected>5</option><option value="2">2</option><option value="1">1</option><option value="0.5">0.5</option></select> changes per second</label>
+            </div>
+            <p id="ramp-note" class="ramp-note hidden">Applies to every request, including the PDO buttons and typed commands. Some chargers refuse a change, fall behind or reset the connection, which turns LOAD off. Changes between fixed voltages need PPS or AVS. Each request goes out early by the charger's measured delay, so changes land on time. If the charger can't keep up, the rate drops and you're told.</p>
           </div>
-          <p id="ramp-note" class="ramp-note hidden">Applies to every request, including the PDO buttons and typed commands. Some chargers refuse a step, fall behind or reset the connection, which turns LOAD off. Steps between fixed voltages need PPS or AVS. Each step waits for the charger to confirm it, so slow chargers take longer.</p>
           <div id="request-feedback" class="request-feedback" aria-live="polite"><span class="feedback-dot"></span><span>Connect to request a contract.</span></div>
           <p class="pd-flow-note"><strong>PD flow:</strong> the source advertises PDOs, the card requests one operating point, then <code>Accept</code> + <code>PS_RDY</code> make it active. Above the contracted current limit, a fixed supply normally trips protection and removes or cycles VBUS; PPS can enter constant-current (CL) regulation instead. See the USB-PD primer below.</p>
           <div class="capability-table-wrap">

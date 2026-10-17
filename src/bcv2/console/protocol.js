@@ -95,24 +95,36 @@
     );
   }
 
-  // Ramp mode (console only): the requests that walk the contract from
-  // startMv to targetMv. Steps land on multiples of stepMv, and the last is
-  // the target itself, so 5.0 V to 9.05 V in 1 V steps is 6, 7, 8, 9, 9.05.
-  function rampSteps(startMv, targetMv, stepMv) {
-    const steps = [];
-    if (!(stepMv > 0) || !Number.isFinite(startMv) || !Number.isFinite(targetMv) || startMv === targetMv) {
-      return steps;
+  // Ramp mode (console only). A ramp follows the straight line from
+  // startMv to targetMv over durationMs, at `rate` changes a second (one of
+  // RAMP_RATES). Change k of n is due to land at k/n of the time. Voltages
+  // snap to the supply's request grid (20 mV for PPS, 100 mV for AVS), a
+  // change that snaps to the voltage before it is dropped, and the last
+  // change is the target itself.
+  const RAMP_RATES = Object.freeze([10, 5, 2, 1, 0.5]);
+  const rampGridMv = (preference) => (/avs$/.test(preference) ? 100 : 20);
+
+  function rampPlan(startMv, targetMv, durationMs, rate, gridMv) {
+    const plan = [];
+    if (!Number.isFinite(startMv) || !Number.isFinite(targetMv) || startMv === targetMv
+      || !(durationMs >= 0) || !(rate > 0) || !(gridMv > 0)) {
+      return plan;
     }
-    const up = targetMv > startMv;
-    let next = up
-      ? (Math.floor(startMv / stepMv) + 1) * stepMv
-      : (Math.ceil(startMv / stepMv) - 1) * stepMv;
-    while (up ? next < targetMv : next > targetMv) {
-      steps.push(next);
-      next += up ? stepMv : -stepMv;
+    const count = Math.max(1, Math.round((durationMs * rate) / 1000));
+    for (let k = 1; k <= count; k += 1) {
+      const mv = k === count
+        ? targetMv
+        : Math.round((startMv + ((targetMv - startMv) * k) / count) / gridMv) * gridMv;
+      if (mv !== (plan.at(-1)?.mv ?? startMv)) plan.push({ mv, atMs: (durationMs * k) / count });
     }
-    steps.push(targetMv);
-    return steps;
+    return plan;
+  }
+
+  // The fastest offered rate a charger keeps up with, given how long a
+  // change takes it from request to ready; slower than all of them if
+  // needed.
+  function rampRateFor(changeMs) {
+    return RAMP_RATES.find((rate) => 1000 / rate >= changeMs) ?? 1000 / changeMs;
   }
 
   // A ramp step counts once telemetry shows the contract at the step and
@@ -836,7 +848,10 @@
     DISPLAY,
     FrameDecoder,
     displayPayload,
-    rampSteps,
+    RAMP_RATES,
+    rampGridMv,
+    rampPlan,
+    rampRateFor,
     rampStepReached,
     boundedVoltageCeiling,
     hardResetCauseName,

@@ -31,7 +31,7 @@ const ui = {
   requestButton: $("#voltage-form .request-submit"),
   rampEnabled: $("#ramp-enabled"),
   rampMs: $("#ramp-ms"),
-  rampStep: $("#ramp-step"),
+  rampRate: $("#ramp-rate"),
   rampNote: $("#ramp-note"),
   enterEprButton: $("#enter-epr-button"),
   eprCapsButton: $("#epr-caps-button"),
@@ -1428,9 +1428,12 @@ for (const input of ui.voltageCeilingInputs) {
 }
 
 // Ramp mode, off by default and never remembered: the console walks the
-// request to its target in even steps, one request per step, and waits for
-// telemetry to confirm each step before it sends the next. The card is not
-// changed; whether the charger keeps up is up to the charger.
+// request to its target along a straight line, one request per change, and
+// waits for telemetry to confirm each change before it sends the next. It
+// times each change from request to ready and sends the next request that
+// much early, so changes land on time; a charger slower than the rate gets
+// fewer, bigger changes, so the ramp still takes the time asked. The card is
+// not changed.
 const RAMP_SETTLE_MS = 3000;
 const RAMP_FAILURE = /^(Rejected|Request rejected|Busy|Invalid|Unsupported command|Hard reset|Protocol lost|PD stopped|Detached)/;
 
@@ -1439,12 +1442,13 @@ function updateRampControls() {
   const running = state.ramp !== null;
   ui.rampEnabled.disabled = running;
   ui.rampMs.disabled = !enabled || running;
-  ui.rampStep.disabled = !enabled || running;
+  ui.rampRate.disabled = !enabled || running;
   ui.rampNote.classList.toggle("hidden", !enabled);
   ui.requestButton.textContent = running ? "Stop ramp" : enabled ? "Ramp" : "Request";
 }
 
 const plural = (count, noun) => `${count} ${noun}${count === 1 ? "" : "s"}`;
+const formatRate = (rate) => `${Number(rate.toFixed(2))} changes/s`;
 
 function rampDelay(ms, signal) {
   return new Promise((resolve, reject) => {
@@ -1500,42 +1504,62 @@ async function runRamp(targetMv, currentText, preference) {
   if (durationText === "" || !Number.isFinite(durationMs) || durationMs < 0 || durationMs > 600000) {
     throw new Error("Ramp time must be 0 to 600000 ms.");
   }
-  const stepMv = Number(ui.rampStep.value);
+  const rate = Number(ui.rampRate.value);
   const startMv = state.telemetry?.contractMv;
   if (!state.telemetry || !(state.telemetry.flags & 2) || !startMv) {
     throw new Error("A ramp starts from the live contract. Wait for the readings, or turn the ramp off.");
   }
-  const steps = controlProtocol.rampSteps(startMv, targetMv, stepMv);
-  if (steps.length === 0) {
+  const gridMv = controlProtocol.rampGridMv(preference);
+  let plan = controlProtocol.rampPlan(startMv, targetMv, durationMs, rate, gridMv);
+  if (plan.length === 0) {
     setRequestFeedback(`Already at ${displayMillivolts(targetMv)}.`, "success");
     return;
   }
   const controller = new AbortController();
   state.ramp = controller;
   updateRampControls();
-  // The first step goes at once and the last at durationMs.
-  const intervalMs = steps.length > 1 ? durationMs / (steps.length - 1) : 0;
   const began = performance.now();
+  // Request-to-ready time, averaged over the changes so far.
+  let changeMs = null;
+  let usedRate = rate;
   let reached = 0;
   let sent = 0;
-  addLog(`Ramp ${displayMillivolts(startMv)} to ${displayMillivolts(targetMv)}: ${plural(steps.length, "step")} of ${displayMillivolts(stepMv)} over ${durationMs} ms`, "system");
+  addLog(`Ramp ${displayMillivolts(startMv)} to ${displayMillivolts(targetMv)} over ${durationMs} ms at ${formatRate(rate)}: ${plural(plan.length, "change")}`, "system");
   try {
-    for (const [index, requestMv] of steps.entries()) {
-      await rampDelay(began + intervalMs * index - performance.now(), controller.signal);
-      setRequestFeedback(`Ramp step ${index + 1} of ${steps.length}: ${displayMillivolts(requestMv)}…`, "pending");
-      await sendCommand(`request ${requestMv} ${currentText} ${preference}`, { echo: false });
+    for (let index = 0; index < plan.length; index += 1) {
+      const change = plan[index];
+      // Sent early by the charger's delay, so the change lands when due.
+      await rampDelay(began + change.atMs - (changeMs ?? 0) - performance.now(), controller.signal);
+      setRequestFeedback(`Ramp change ${index + 1} of ${plan.length}: ${displayMillivolts(change.mv)}…`, "pending");
+      const sentAt = performance.now();
+      await sendCommand(`request ${change.mv} ${currentText} ${preference}`, { echo: false });
       sent = index + 1;
-      await rampStepSettled(requestMv, controller.signal);
+      await rampStepSettled(change.mv, controller.signal);
       reached = index + 1;
+      const tookMs = performance.now() - sentAt;
+      changeMs = changeMs === null ? tookMs : (changeMs + tookMs) / 2;
+      // Slower than the rate: replan the rest with fewer, bigger changes.
+      const slower = controlProtocol.rampRateFor(changeMs);
+      if (reached < plan.length && slower < usedRate) {
+        const elapsedMs = performance.now() - began;
+        const rest = controlProtocol.rampPlan(change.mv, targetMv, Math.max(0, durationMs - elapsedMs), slower, gridMv)
+          .map(({ mv, atMs }) => ({ mv, atMs: elapsedMs + atMs }));
+        plan = [...plan.slice(0, reached), ...rest];
+        addLog(`Ramp: the charger takes about ${Math.round(changeMs)} ms per change, so ${formatRate(usedRate)} became ${formatRate(slower)}`, "system");
+        usedRate = slower;
+      }
     }
-    const tookMs = Math.round(performance.now() - began);
-    const paced = tookMs > durationMs * 1.2 + 250 ? " The charger set the pace." : "";
-    setRequestFeedback(`Ramped to ${displayMillivolts(targetMv)} in ${plural(steps.length, "step")} over ${tookMs} ms (asked ${durationMs} ms).${paced}`, "success");
+    const tookS = ((performance.now() - began) / 1000).toFixed(2);
+    const timing = usedRate < rate
+      ? ` The charger took about ${Math.round(changeMs)} ms per change, so it ran at ${Number(usedRate.toFixed(2))} instead of ${formatRate(rate)}.`
+      : ` Each request went out ${Math.round(changeMs)} ms early to cover the charger's delay.`;
+    setRequestFeedback(`Ramped to ${displayMillivolts(targetMv)}: ${plural(reached, "change")} in ${tookS} s (asked ${durationMs / 1000} s).${timing}`, "success");
+    addLog(`Ramp done: ${plural(reached, "change")} in ${tookS} s, about ${Math.round(changeMs)} ms from request to ready`, "system");
   } catch (error) {
-    const at = reached === 0 ? displayMillivolts(startMv) : displayMillivolts(steps[reached - 1]);
-    const inFlight = sent > reached ? ` ${displayMillivolts(steps[sent - 1])} was already asked for.` : "";
-    setRequestFeedback(`Ramp stopped: ${error.message}. ${reached} of ${plural(steps.length, "step")} confirmed, the last at ${at}.${inFlight}`, "error");
-    addLog(`Ramp stopped after ${reached} of ${steps.length} steps: ${error.message}`, "system", "error");
+    const at = displayMillivolts(reached === 0 ? startMv : plan[reached - 1].mv);
+    const inFlight = sent > reached ? ` ${displayMillivolts(plan[sent - 1].mv)} was already asked for.` : "";
+    setRequestFeedback(`Ramp stopped: ${error.message}. ${reached} of ${plural(plan.length, "change")} confirmed, the last at ${at}.${inFlight}`, "error");
+    addLog(`Ramp stopped after ${reached} of ${plan.length} changes: ${error.message}`, "system", "error");
   } finally {
     state.ramp = null;
     updateRampControls();
