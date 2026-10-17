@@ -85,15 +85,15 @@ input:focus, select:focus { border-color: var(--green); box-shadow: 0 0 0 2px rg
 .button-quiet { height: 29px; padding: 0 8px; background: #10171b; }
 .button-toggle[aria-pressed="true"] { color: #b8f2f1; background: var(--green-deep); border-color: #08706f; }
 .button-compact { height: 29px; }
-.ramp-box { margin-top: 7px; padding: 7px 8px; background: var(--surface-soft); border: 1px solid var(--line); border-radius: 9px; }
-.ramp-row { display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: center; color: var(--muted); font-size: .68rem; }
-.ramp-row label { display: flex; gap: 5px; align-items: center; }
+.ramp-box { display: grid; gap: 5px; margin-top: 7px; padding: 7px 8px; color: var(--muted); background: var(--surface-soft); border: 1px solid var(--line); border-radius: 9px; font-size: .68rem; }
+.ramp-box label { display: flex; gap: 6px; align-items: center; }
+.ramp-field > span { min-width: 136px; }
 .ramp-toggle { color: var(--text); }
 .ramp-toggle em { color: var(--amber); font-style: normal; }
 .ramp-toggle input { width: auto; height: auto; accent-color: var(--green); }
 .ramp-field input { width: 76px; height: 26px; padding: 0 6px; font-size: .68rem; }
 .ramp-field select { width: auto; height: 26px; }
-.ramp-note { margin: 6px 0 0; color: var(--amber); font-size: .64rem; line-height: 1.4; }
+.ramp-note { margin: 0; color: var(--amber); font-size: .64rem; line-height: 1.4; }
 .request-feedback { display: flex; gap: 7px; align-items: center; min-height: 27px; padding: 0 3px; color: var(--muted); font-size: .7rem; }
 .request-feedback .feedback-dot { width: 6px; height: 6px; background: #69767d; border-radius: 50%; }
 .request-feedback.pending { color: var(--amber); }

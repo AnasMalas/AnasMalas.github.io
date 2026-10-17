@@ -766,6 +766,9 @@ function pdoPreference(pdo) {
   return "fixed";
 }
 
+// The lowest voltage the card requests (the firmware's MINIMUM_SUPPLY_MV).
+const CARD_MINIMUM_MV = 5000;
+
 async function requestPdoVoltage(pdo, millivolts, label) {
   if (ui.rampEnabled.checked) {
     await rampRequest(millivolts, "max", pdoPreference(pdo));
@@ -824,9 +827,12 @@ function renderCapabilities() {
       ui.capabilityBody.append(row);
       continue;
     }
+    // The card goes no lower than 5 V, so a range starting below it (PPS
+    // from 3.3 V) offers 5V instead of Min.
+    const low = pdo.type === "EPR-AVS" ? Math.max(15000, pdo.minMillivolts) : pdo.minMillivolts;
     const endpoints = pdo.type === "Fixed"
       ? [[pdo.maxMillivolts, "Request"]]
-      : [[pdo.type === "EPR-AVS" ? Math.max(15000, pdo.minMillivolts) : pdo.minMillivolts, "Min"], [pdo.maxMillivolts, "Max"]];
+      : [low < CARD_MINIMUM_MV ? [CARD_MINIMUM_MV, "5V"] : [low, "Min"], [pdo.maxMillivolts, "Max"]];
     for (const [millivolts, label] of endpoints) {
       const action = document.createElement("button");
       action.className = "button button-quiet";
@@ -1027,6 +1033,11 @@ async function sendCommand(command, { echo = true } = {}) {
   const requestedVoltage = commandRequestedVoltage(trimmed);
   if (requestedVoltage === "unknown-pdo") {
     throw new Error("Load the full capability list before making a direct maximum-PDO request.");
+  }
+  // The firmware refuses these (MINIMUM_SUPPLY_MV): VBUS detection trips
+  // near 4.47 V.
+  if (Number.isFinite(requestedVoltage) && requestedVoltage < CARD_MINIMUM_MV) {
+    throw new Error("The card doesn't go below 5 V.");
   }
   if (Number.isFinite(requestedVoltage) && requestedVoltage > state.maxVoltageMillivolts) {
     throw new Error(
@@ -1599,7 +1610,7 @@ ui.voltageForm.addEventListener("submit", async (event) => {
     return;
   }
   try {
-    const voltage = toMilli(ui.voltageInput.value, "Voltage", { maximum: 50 });
+    const voltage = toMilli(ui.voltageInput.value, "Voltage", { minimum: 5, maximum: 50 });
     // The card refuses less than 0.5 A.
     const current = toMilli(ui.currentInput.value, "Current", { optional: true, minimum: 0.5, maximum: 5 });
     const preference = ui.preferenceInput.value;
