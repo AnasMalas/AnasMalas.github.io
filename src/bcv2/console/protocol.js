@@ -66,6 +66,68 @@
     "epr-avs-nonstandard": 5,
   });
 
+  // Display settings, from firmware 0x01050046 (in v1.1): the same ranges as
+  // the firmware's DisplayPrefs. The scales are the light level (of 255) at
+  // each brightness step; the top step is the brightest the card can show
+  // at 21 V without dimming itself.
+  const DISPLAY = Object.freeze({
+    command: 0x34,
+    scales: Object.freeze([
+      5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 26, 29, 31, 34, 37,
+      40, 44, 47, 52, 56, 61, 66, 72, 78, 85, 92, 100, 109, 119, 129, 140, 152, 166, 180,
+    ]),
+    // The dim dots' level, out of the full 240.
+    full: 240,
+    dimMin: 3,
+    dimMax: 60,
+    hideLeadingZeros: 1,
+    hideMarks: 2,
+    defaults: Object.freeze({ brightness: 34, dim: 21, flags: 0 }),
+  });
+
+  /** The 0x34 payload for display settings, brought into range. */
+  function displayPayload({ brightness, dim, flags }) {
+    const clamp = (value, low, high) => Math.min(high, Math.max(low, Math.round(Number(value)) || 0));
+    return Uint8Array.of(
+      clamp(brightness, 0, DISPLAY.scales.length - 1),
+      clamp(dim, DISPLAY.dimMin, DISPLAY.dimMax),
+      Number(flags) & (DISPLAY.hideLeadingZeros | DISPLAY.hideMarks),
+    );
+  }
+
+  // Ramp mode (console only): the requests that walk the contract from
+  // startMv to targetMv. Steps land on multiples of stepMv, and the last is
+  // the target itself, so 5.0 V to 9.05 V in 1 V steps is 6, 7, 8, 9, 9.05.
+  function rampSteps(startMv, targetMv, stepMv) {
+    const steps = [];
+    if (!(stepMv > 0) || !Number.isFinite(startMv) || !Number.isFinite(targetMv) || startMv === targetMv) {
+      return steps;
+    }
+    const up = targetMv > startMv;
+    let next = up
+      ? (Math.floor(startMv / stepMv) + 1) * stepMv
+      : (Math.ceil(startMv / stepMv) - 1) * stepMv;
+    while (up ? next < targetMv : next > targetMv) {
+      steps.push(next);
+      next += up ? stepMv : -stepMv;
+    }
+    steps.push(targetMv);
+    return steps;
+  }
+
+  // A ramp step counts once telemetry shows the contract at the step and
+  // VBUS has followed it. Some chargers acknowledge a request and keep the
+  // old voltage, so the contract alone is not enough; the VBUS margin is
+  // the firmware's own restore check (1/8 + 0.5 V). The contract margin
+  // covers PPS and AVS rounding (20 and 100 mV units).
+  const RAMP_CONTRACT_READY = 1 << 1;
+  function rampStepReached(sample, stepMv) {
+    return Boolean(sample)
+      && (sample.flags & RAMP_CONTRACT_READY) !== 0
+      && Math.abs(sample.contractMv - stepMv) <= 100
+      && Math.abs(sample.vbusMv - stepMv) <= stepMv / 8 + 500;
+  }
+
   function crc8(bytes) {
     let crc = 0;
     for (const byte of bytes) {
@@ -438,8 +500,9 @@
   }
 
   function translateDevice(payload) {
-    // Newer firmware appends its build ID and library revision tag.
-    if (payload.length !== 29) expectLength(payload, 21);
+    // Newer firmware appends its build ID and library revision tag (29
+    // bytes), and from v1.1 its display settings (32).
+    if (payload.length !== 29 && payload.length !== 32) expectLength(payload, 21);
     const uid = payload.subarray(0, 8);
     const unavailable = uid.every((byte) => byte === 0) || uid.every((byte) => byte === 0xff);
     const identity = unavailable
@@ -449,8 +512,11 @@
     return [
       `Device id=${identity}`,
       `Device limits: max=${readU32(payload, 9)}mV current=${readU32(payload, 13)}mA power=${readU32(payload, 17)}mW PPS=${Boolean(flags & 1)} EPR=${Boolean(flags & 2)}`,
-      ...(payload.length === 29
+      ...(payload.length >= 29
         ? [`Device build=${hex32(readU32(payload, 21))} library=${hex32(readU32(payload, 25)).slice(2)}`]
+        : []),
+      ...(payload.length === 32
+        ? [`Device display: brightness=${payload[29]} dim=${payload[30]} flags=${payload[31]}`]
         : []),
     ];
   }
@@ -767,7 +833,11 @@
   const api = Object.freeze({
     VERSION,
     VOLTAGE_CEILINGS,
+    DISPLAY,
     FrameDecoder,
+    displayPayload,
+    rampSteps,
+    rampStepReached,
     boundedVoltageCeiling,
     hardResetCauseName,
     crc8,

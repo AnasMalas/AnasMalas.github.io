@@ -16,8 +16,22 @@
     count: document.querySelector("#sample-count"),
     voltage: document.querySelector("#reading-voltage"),
     current: document.querySelector("#reading-current"),
+    tare: document.querySelector("#current-tare"),
+    tareNote: document.querySelector("#current-tare-note"),
     power: document.querySelector("#reading-power"),
+    fiveVolt: document.querySelector("#five-volt-note"),
     blackBoxButton: document.querySelector("#inspect-black-box"),
+    displayButton: document.querySelector("#display-button"),
+    displayDialog: document.querySelector("#display-dialog"),
+    brightness: document.querySelector("#display-brightness"),
+    brightnessValue: document.querySelector("#display-brightness-value"),
+    contrast: document.querySelector("#display-contrast"),
+    contrastValue: document.querySelector("#display-contrast-value"),
+    zeros: document.querySelector("#display-zeros"),
+    marks: document.querySelector("#display-marks"),
+    displayNote: document.querySelector("#display-note"),
+    displayDefaults: document.querySelector("#display-defaults"),
+    displayDone: document.querySelector("#display-done"),
     systemStatus: document.querySelector("#system-status"),
     systemDetail: document.querySelector("#system-status-detail"),
   };
@@ -38,7 +52,16 @@
     ? Number(savedAverage)
     : 250;
   let telemetryWarning = null;
+  // A current zero set here (A), or null. Only the console's numbers move;
+  // the card is not changed. Samples keep the card's reading as rawAmps.
+  let tareAmps = null;
+  const TARE_WINDOW_MS = 1000;
   let redrawPending = false;
+  const display = globalThis.PdControlProtocol.DISPLAY;
+  // The card's display settings, from its device event (v1.1 and later).
+  let displayPrefs = null;
+  // The card's build, from its device line, or null.
+  let deviceBuild = null;
 
   const u16 = (bytes, offset) => bytes[offset] | (bytes[offset + 1] << 8);
   const u32 = (bytes, offset) => (bytes[offset] | (bytes[offset + 1] << 8)
@@ -93,6 +116,13 @@
     ui.voltage.textContent = point ? formatValue(point.volts, 2) : "—";
     ui.current.textContent = point ? formatValue(point.amps, 2) : "—";
     ui.power.textContent = point ? formatValue(point.watts, 2) : "—";
+    // At 5 V the LDO has no headroom, so the LEDs pull the card's supply (and
+    // its readings) around; the note says so while VBUS is near 5 V. From
+    // 0x01050047 (v1.1) the card measures with its display blanked and 5 V
+    // reads as cleanly as 9 V, so only older cards show it.
+    const connected = Boolean(globalThis.Bcv2Transport?.isConnected());
+    const older = deviceBuild !== null && deviceBuild < 0x01050047;
+    ui.fiveVolt.classList.toggle("hidden", !(connected && older && point && point.volts > 4 && point.volts < 5.6));
   }
 
   function scheduleDraw() {
@@ -211,10 +241,38 @@
     }
   }
 
+  function applyTare(point) {
+    point.amps = tareAmps === null ? point.rawAmps : Math.max(0, point.rawAmps - tareAmps);
+    point.watts = point.volts * point.amps;
+    return point;
+  }
+
+  function recentRawAmps() {
+    if (samples.length === 0) return [];
+    const cutoff = samples[samples.length - 1].hostMs - TARE_WINDOW_MS;
+    return samples.filter((sample) => sample.hostMs >= cutoff).map((sample) => sample.rawAmps);
+  }
+
+  function updateTare() {
+    ui.tare.textContent = tareAmps === null ? "Tare" : "Clear tare";
+    ui.tare.setAttribute("aria-pressed", String(tareAmps !== null));
+    ui.tare.disabled = tareAmps === null && recentRawAmps().length === 0;
+    ui.tareNote.textContent = tareAmps === null ? "" : `tare ${formatValue(tareAmps, 3)} A`;
+    ui.tareNote.classList.toggle("hidden", tareAmps === null);
+  }
+
+  function setTare(amps) {
+    tareAmps = amps;
+    for (const sample of samples) applyTare(sample);
+    updateTare();
+    updateReadings();
+    scheduleDraw();
+  }
+
   function addSample(sample) {
     const volts = sample.vbusMv / 1000;
-    const amps = sample.currentMa / 1000;
-    const point = { hostMs: Date.now(), deviceMs: sample.timestampMs, volts, amps, watts: volts * amps };
+    const rawAmps = sample.currentMa / 1000;
+    const point = applyTare({ hostMs: Date.now(), deviceMs: sample.timestampMs, volts, rawAmps });
     samples.push(point);
     const cutoff = point.hostMs - MAX_HISTORY_MS;
     while (samples.length > 0 && samples[0].hostMs < cutoff) samples.shift();
@@ -296,9 +354,65 @@
     return lines;
   }
 
+  // LEDs and brightness. The contrast slider runs the other way to the dim
+  // dots' level: more contrast is dimmer dim dots.
+  const DISPLAY_HELP = "Changes show on the card right away and stay after unplugging. On the card: hold COARSE − and MODE for 5 seconds, pick a brightness with FINE and COARSE, then press APPLY.";
+
+  function percent(fraction) {
+    return `${Math.max(1, Math.round(fraction * 100))}%`;
+  }
+
+  const isDefault = (value, key) => (value === display.defaults[key] ? " (default)" : "");
+
+  function displayForm() {
+    return {
+      brightness: Number(ui.brightness.value),
+      dim: display.dimMax - Number(ui.contrast.value),
+      flags: (ui.zeros.checked ? 0 : display.hideLeadingZeros) | (ui.marks.checked ? 0 : display.hideMarks),
+    };
+  }
+
+  function showDisplayValues(prefs) {
+    // The steps look even, so the step says more than the light level.
+    ui.brightnessValue.textContent = `${prefs.brightness + 1} of ${display.scales.length}${isDefault(prefs.brightness, "brightness")}`;
+    ui.contrastValue.textContent = `dim dots at ${percent(prefs.dim / display.full)}${isDefault(prefs.dim, "dim")}`;
+  }
+
+  function renderDisplayForm(prefs) {
+    ui.brightness.value = String(prefs.brightness);
+    ui.contrast.value = String(display.dimMax - prefs.dim);
+    ui.zeros.checked = !(prefs.flags & display.hideLeadingZeros);
+    ui.marks.checked = !(prefs.flags & display.hideMarks);
+    showDisplayValues(prefs);
+  }
+
+  async function sendDisplay(prefs) {
+    const [brightness, dim, flags] = globalThis.PdControlProtocol.displayPayload(prefs);
+    displayPrefs = { brightness, dim, flags };
+    renderDisplayForm(displayPrefs);
+    try {
+      await globalThis.Bcv2Transport.sendFrame(display.command, Uint8Array.of(brightness, dim, flags));
+      ui.displayNote.textContent = DISPLAY_HELP;
+    } catch (error) {
+      ui.displayNote.textContent = `Could not change it: ${error.message}`;
+    }
+  }
+
+  function updateDisplayButton() {
+    const connected = Boolean(globalThis.Bcv2Transport?.isConnected());
+    ui.displayButton.disabled = !connected || displayPrefs === null;
+    ui.displayButton.title = connected && displayPrefs === null ? "Needs firmware v1.1 or later." : "";
+    if (ui.displayButton.disabled && ui.displayDialog.open) ui.displayDialog.close();
+  }
+
   globalThis.addEventListener("pd-control-frame", (event) => {
     const frame = event.detail;
-    if (frame.kind === 0xa5) {
+    if (frame.kind === 0x81) {
+      const payload = frame.payload;
+      displayPrefs = payload.length === 32 ? { brightness: payload[29], dim: payload[30], flags: payload[31] } : null;
+      if (displayPrefs && !ui.displayDialog.open) renderDisplayForm(displayPrefs);
+      updateDisplayButton();
+    } else if (frame.kind === 0xa5) {
       const sample = telemetryCodec.decode(frame.payload);
       if (sample) {
         observeLoadSafety(sample);
@@ -335,9 +449,17 @@
     });
   }
   ui.window.addEventListener("change", () => { savePreference(STORAGE_WINDOW, ui.window.value); scheduleDraw(); });
-  ui.clear.addEventListener("click", () => { samples.length = 0; updateReadings(); updateControls(); scheduleDraw(); });
+  ui.clear.addEventListener("click", () => { samples.length = 0; updateReadings(); updateControls(); updateTare(); scheduleDraw(); });
+  // The tare is the mean of the last second, so set it with LOAD off.
+  ui.tare.addEventListener("click", () => {
+    if (tareAmps !== null) return setTare(null);
+    const recent = recentRawAmps();
+    if (recent.length > 0) setTare(recent.reduce((sum, amps) => sum + amps, 0) / recent.length);
+  });
+  // CSV keeps the card's own readings; tare_a is the console's zero, if set.
   ui.export.addEventListener("click", () => {
-    const rows = ["host_time_iso,device_timestamp_ms,vbus_v,current_a,power_w", ...samples.map((sample) => `${new Date(sample.hostMs).toISOString()},${sample.deviceMs},${sample.volts.toFixed(3)},${sample.amps.toFixed(3)},${sample.watts.toFixed(3)}`)];
+    const tare = tareAmps === null ? "" : tareAmps.toFixed(4);
+    const rows = ["host_time_iso,device_timestamp_ms,vbus_v,current_a,power_w,tare_a", ...samples.map((sample) => `${new Date(sample.hostMs).toISOString()},${sample.deviceMs},${sample.volts.toFixed(3)},${sample.rawAmps.toFixed(3)},${(sample.volts * sample.rawAmps).toFixed(3)},${tare}`)];
     const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob([`${rows.join("\n")}\n`], { type: "text/csv;charset=utf-8" })); link.download = `bcv2-power-${new Date().toISOString().replaceAll(":", "-")}.csv`; link.click(); setTimeout(() => URL.revokeObjectURL(link.href), 0);
   });
   ui.blackBoxButton.addEventListener("click", async () => {
@@ -347,6 +469,35 @@
     catch (error) { globalThis.Bcv2Transport.logDiagnostic(`Black box: ${error.message}`); }
     finally { setTimeout(() => { ui.blackBoxButton.textContent = "Inspect black box"; ui.blackBoxButton.disabled = !globalThis.Bcv2Transport?.isConnected(); }, 250); }
   });
+  ui.displayButton.addEventListener("click", () => {
+    if (!displayPrefs) return;
+    renderDisplayForm(displayPrefs);
+    ui.displayNote.textContent = DISPLAY_HELP;
+    ui.displayDialog.showModal();
+  });
+  for (const input of [ui.brightness, ui.contrast]) {
+    input.addEventListener("input", () => showDisplayValues(displayForm()));
+  }
+  // One command per change (a slider sends when it is let go), so the log
+  // gets one line set per change, not one per pixel dragged.
+  for (const input of [ui.brightness, ui.contrast, ui.zeros, ui.marks]) {
+    input.addEventListener("change", () => void sendDisplay(displayForm()));
+  }
+  ui.displayDefaults.addEventListener("click", () => void sendDisplay(display.defaults));
+  ui.displayDone.addEventListener("click", () => ui.displayDialog.close());
+  globalThis.addEventListener("bcv2-device-line", (event) => {
+    const build = event.detail.match(/^Device build=0x([0-9a-f]{8}) /i);
+    if (build) deviceBuild = Number.parseInt(build[1], 16);
+  });
+  globalThis.addEventListener("bcv2-disconnected", () => {
+    displayPrefs = null;
+    deviceBuild = null;
+    updateDisplayButton();
+    // Another card has another zero.
+    if (tareAmps !== null) setTare(null);
+    ui.fiveVolt.classList.add("hidden");
+  });
+
   chart.addEventListener("mousemove", (event) => {
     const visible = visibleSamples();
     if (visible.length === 0) return ui.cursor.classList.add("hidden");
@@ -362,6 +513,10 @@
   const savedWindow = localStorage.getItem(STORAGE_WINDOW);
   if ([...ui.window.options].some((option) => option.value === savedWindow)) ui.window.value = savedWindow;
   new ResizeObserver(scheduleDraw).observe(chart);
-  setInterval(() => { ui.blackBoxButton.disabled = !globalThis.Bcv2Transport?.isConnected(); }, 400);
+  setInterval(() => {
+    ui.blackBoxButton.disabled = !globalThis.Bcv2Transport?.isConnected();
+    updateDisplayButton();
+    updateTare();
+  }, 400);
   updateControls(); scheduleDraw();
 })();

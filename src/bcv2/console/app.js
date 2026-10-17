@@ -28,6 +28,11 @@ const ui = {
   voltageCeilingInputs: document.querySelectorAll('input[name="voltage-ceiling"]'),
   voltageCeilingNote: $("#voltage-ceiling-note"),
   requestFeedback: $("#request-feedback"),
+  requestButton: $("#voltage-form .request-submit"),
+  rampEnabled: $("#ramp-enabled"),
+  rampMs: $("#ramp-ms"),
+  rampStep: $("#ramp-step"),
+  rampNote: $("#ramp-note"),
   enterEprButton: $("#enter-epr-button"),
   eprCapsButton: $("#epr-caps-button"),
   exitEprButton: $("#exit-epr-button"),
@@ -94,6 +99,10 @@ const state = {
   unexpectedLossMs: null,
   readBlackBoxAfterInit: false,
   reconnectGapMs: null,
+  // The last product telemetry sample, for the ramp's starting point.
+  telemetry: null,
+  // An AbortController while a ramp runs.
+  ramp: null,
 };
 
 const encoder = new TextEncoder();
@@ -271,7 +280,7 @@ function updateActionAvailability() {
       : "";
   });
   document.querySelectorAll(".request-submit").forEach((button) => {
-    button.disabled = !ready;
+    button.disabled = !ready && !state.ramp;
   });
   ui.rawCommand.disabled = !ready;
   ui.rawCommandForm.querySelector("button").disabled = !ready;
@@ -289,6 +298,7 @@ function setConnected(connected) {
 
   if (!connected) {
     globalThis.dispatchEvent(new CustomEvent("bcv2-disconnected"));
+    state.telemetry = null;
     state.connectionApi = null;
     state.usbClaimedInterfaces.length = 0;
     state.usbInEndpoint = null;
@@ -557,8 +567,9 @@ function appendControlData(chunk) {
     try {
       // The public device event reserves bits 0-2; rev1 advertises the
       // additional product-capabilities and full-control command sets here.
-      // Builds since 2026-09-27 append the build ID and library tag (29 bytes).
-      if (frame.kind === 0x81 && (frame.payload.length === 21 || frame.payload.length === 29)) {
+      // Builds since 2026-09-27 append the build ID and library tag (29 bytes),
+      // and v1.1 its display settings (32).
+      if (frame.kind === 0x81 && [21, 29, 32].includes(frame.payload.length)) {
         state.supportsCaps = Boolean(frame.payload[8] & 0x40);
         state.supportsDirectControls = Boolean(frame.payload[8] & 0x20);
         state.supportsFullControl = Boolean(frame.payload[8] & 0x80);
@@ -567,6 +578,7 @@ function appendControlData(chunk) {
       if (frame.kind === 0xa5 && state.supportsCaps && !state.supportsFullControl) {
         const sample = globalThis.Bcv2ProductTelemetry.decode(frame.payload);
         if (sample) {
+          state.telemetry = sample;
           ui.contractVoltage.textContent = sample.contractMv ? displayMillivolts(sample.contractMv) : "—";
           ui.contractSupply.textContent = sample.contractMv
             ? "Confirmed contract · supply family unavailable in compact image"
@@ -1362,11 +1374,12 @@ async function disconnectPort() {
   clearDeviceState();
 }
 
-function toMilli(value, label, { optional = false, maximum } = {}) {
+function toMilli(value, label, { optional = false, minimum, maximum } = {}) {
   const text = String(value).trim();
   if (optional && text === "") return null;
   const parsed = Number(text);
   if (!Number.isFinite(parsed) || parsed <= 0) throw new Error(`${label} must be a positive number.`);
+  if (minimum !== undefined && parsed < minimum) throw new Error(`${label} must be at least ${minimum}.`);
   if (maximum !== undefined && parsed > maximum) throw new Error(`${label} must not exceed ${maximum}.`);
   return Math.round(parsed * 1000);
 }
@@ -1410,14 +1423,142 @@ for (const input of ui.voltageCeilingInputs) {
   });
 }
 
+// Ramp mode, off by default and never remembered: the console walks the
+// request to its target in even steps, one request per step, and waits for
+// telemetry to confirm each step before it sends the next. The card is not
+// changed; whether the charger keeps up is up to the charger.
+const RAMP_SETTLE_MS = 3000;
+const RAMP_FAILURE = /^(Rejected|Request rejected|Busy|Invalid|Unsupported command|Hard reset|Protocol lost|PD stopped|Detached)/;
+
+function updateRampControls() {
+  const enabled = ui.rampEnabled.checked;
+  const running = state.ramp !== null;
+  ui.rampEnabled.disabled = running;
+  ui.rampMs.disabled = !enabled || running;
+  ui.rampStep.disabled = !enabled || running;
+  ui.rampNote.classList.toggle("hidden", !enabled);
+  ui.requestButton.textContent = running ? "Stop ramp" : enabled ? "Ramp" : "Request";
+}
+
+const plural = (count, noun) => `${count} ${noun}${count === 1 ? "" : "s"}`;
+
+function rampDelay(ms, signal) {
+  return new Promise((resolve, reject) => {
+    if (signal.aborted) return reject(new Error("you pressed Stop"));
+    const onAbort = () => {
+      clearTimeout(timer);
+      reject(new Error("you pressed Stop"));
+    };
+    const timer = setTimeout(() => {
+      signal.removeEventListener("abort", onAbort);
+      resolve();
+    }, Math.max(0, ms));
+    signal.addEventListener("abort", onAbort, { once: true });
+  });
+}
+
+// Resolves when telemetry shows the step; a failure line, a disconnect,
+// Stop, or RAMP_SETTLE_MS without it rejects.
+function rampStepSettled(stepMv, signal) {
+  return new Promise((resolve, reject) => {
+    const finish = (error) => {
+      clearTimeout(timer);
+      globalThis.removeEventListener("pd-control-frame", onFrame);
+      globalThis.removeEventListener("bcv2-device-line", onLine);
+      globalThis.removeEventListener("bcv2-disconnected", onLost);
+      signal.removeEventListener("abort", onAbort);
+      if (error) reject(error);
+      else resolve();
+    };
+    const onFrame = ({ detail: frame }) => {
+      if (frame.kind !== 0xa5) return;
+      if (controlProtocol.rampStepReached(globalThis.Bcv2ProductTelemetry.decode(frame.payload), stepMv)) finish();
+    };
+    const onLine = ({ detail: line }) => {
+      if (RAMP_FAILURE.test(line)) finish(new Error(line));
+    };
+    const onLost = () => finish(new Error("the card disconnected"));
+    const onAbort = () => finish(new Error("you pressed Stop"));
+    const timer = setTimeout(
+      () => finish(new Error(`the charger did not reach ${displayMillivolts(stepMv)} within ${RAMP_SETTLE_MS / 1000} s`)),
+      RAMP_SETTLE_MS,
+    );
+    globalThis.addEventListener("pd-control-frame", onFrame);
+    globalThis.addEventListener("bcv2-device-line", onLine);
+    globalThis.addEventListener("bcv2-disconnected", onLost);
+    signal.addEventListener("abort", onAbort, { once: true });
+  });
+}
+
+async function runRamp(targetMv, currentText, preference) {
+  const durationText = String(ui.rampMs.value).trim();
+  const durationMs = Number(durationText);
+  if (durationText === "" || !Number.isFinite(durationMs) || durationMs < 0 || durationMs > 600000) {
+    throw new Error("Ramp time must be 0 to 600000 ms.");
+  }
+  const stepMv = Number(ui.rampStep.value);
+  const startMv = state.telemetry?.contractMv;
+  if (!state.telemetry || !(state.telemetry.flags & 2) || !startMv) {
+    throw new Error("A ramp starts from the live contract. Wait for the readings, or turn the ramp off.");
+  }
+  const steps = controlProtocol.rampSteps(startMv, targetMv, stepMv);
+  if (steps.length === 0) {
+    setRequestFeedback(`Already at ${displayMillivolts(targetMv)}.`, "success");
+    return;
+  }
+  const controller = new AbortController();
+  state.ramp = controller;
+  updateRampControls();
+  // The first step goes at once and the last at durationMs.
+  const intervalMs = steps.length > 1 ? durationMs / (steps.length - 1) : 0;
+  const began = performance.now();
+  let reached = 0;
+  let sent = 0;
+  addLog(`Ramp ${displayMillivolts(startMv)} to ${displayMillivolts(targetMv)}: ${plural(steps.length, "step")} of ${displayMillivolts(stepMv)} over ${durationMs} ms`, "system");
+  try {
+    for (const [index, requestMv] of steps.entries()) {
+      await rampDelay(began + intervalMs * index - performance.now(), controller.signal);
+      setRequestFeedback(`Ramp step ${index + 1} of ${steps.length}: ${displayMillivolts(requestMv)}…`, "pending");
+      await sendCommand(`request ${requestMv} ${currentText} ${preference}`, { echo: false });
+      sent = index + 1;
+      await rampStepSettled(requestMv, controller.signal);
+      reached = index + 1;
+    }
+    const tookMs = Math.round(performance.now() - began);
+    const paced = tookMs > durationMs * 1.2 + 250 ? " The charger set the pace." : "";
+    setRequestFeedback(`Ramped to ${displayMillivolts(targetMv)} in ${plural(steps.length, "step")} over ${tookMs} ms (asked ${durationMs} ms).${paced}`, "success");
+  } catch (error) {
+    const at = reached === 0 ? displayMillivolts(startMv) : displayMillivolts(steps[reached - 1]);
+    const inFlight = sent > reached ? ` ${displayMillivolts(steps[sent - 1])} was already asked for.` : "";
+    setRequestFeedback(`Ramp stopped: ${error.message}. ${reached} of ${plural(steps.length, "step")} confirmed, the last at ${at}.${inFlight}`, "error");
+    addLog(`Ramp stopped after ${reached} of ${steps.length} steps: ${error.message}`, "system", "error");
+  } finally {
+    state.ramp = null;
+    updateRampControls();
+    updateActionAvailability();
+  }
+}
+
+ui.rampEnabled.addEventListener("change", updateRampControls);
+updateRampControls();
+
 ui.voltageForm.addEventListener("submit", async (event) => {
   event.preventDefault();
+  if (state.ramp) {
+    state.ramp.abort();
+    return;
+  }
   try {
     const voltage = toMilli(ui.voltageInput.value, "Voltage", { maximum: 50 });
-    const current = toMilli(ui.currentInput.value, "Current", { optional: true, maximum: 5 });
+    // The card refuses less than 0.5 A.
+    const current = toMilli(ui.currentInput.value, "Current", { optional: true, minimum: 0.5, maximum: 5 });
     const preference = ui.preferenceInput.value;
     state.pendingPdoPosition = null;
     renderCapabilities();
+    if (ui.rampEnabled.checked) {
+      await runRamp(voltage, current === null ? "max" : current, preference);
+      return;
+    }
     setRequestFeedback(`Requesting ${displayMillivolts(voltage)}…`, "pending");
     await sendCommand(`request ${voltage} ${current === null ? "max" : current} ${preference}`);
     setRequestFeedback(`Request queued for ${displayMillivolts(voltage)}${current === null ? " at the available current" : ` with ${displayMilliamps(current)} requested`}.`, "pending");

@@ -4,18 +4,18 @@
   "releases": [
     {
       "version": "v1.1",
-      "build": null,
-      "date": null,
+      "build": "0x01050049",
+      "date": "2026-10-17",
       "changes": [
-        "Set the brightness right on the card: hold C- and MODE for 5 seconds, then FINE and COARSE change it and APPLY keeps it.",
+        "Set the brightness right on the card: hold C- and MODE for 5 seconds, then FINE and COARSE change it and APPLY keeps it. The slow blinking dot is the default.",
         "The console can set it too, along with how bright the dim dots are and whether to hide leading zeros and the 5V marks. The card remembers all of it.",
+        "Much steadier voltage and current readings, at 5V too. With nothing drawing power, current reads 0.",
         "Holding the card by its keys while plugging it in doesnt make phantom presses anymore once you let go.",
         "The lowest current you can set is 0.5A now."
       ],
       "console": [
         "Ramp: step up or down to a voltage over a set time. Some chargers dont like it, so its off until you tick it.",
-        "Tare for the current reading.",
-        "A note by the graph when youre at 5V, where readings are noisier."
+        "Tare for the current reading."
       ]
     }
   ]

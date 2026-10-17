@@ -7,13 +7,13 @@
     <meta name="theme-color" content="#0b0f12">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src https://anasmalas.com; object-src 'none'; base-uri 'none'; form-action 'none'">
     <title>The Negotiator II Power Control</title>
-    <link rel="stylesheet" href="styles.css?v=a7d3aa48c1">
-    <script src="protocol.js?v=bf13cedd84" defer></script>
+    <link rel="stylesheet" href="styles.css?v=e6e6563f07">
+    <script src="protocol.js?v=ed55ccd959" defer></script>
     <script src="console-log.js?v=010ae64352" defer></script>
     <script src="product-telemetry.js?v=6c0e011221" defer></script>
-    <script src="support.js?v=686716d12b" defer></script>
-    <script src="app.js?v=fdc92b0452" defer></script>
-    <script src="dashboard.js?v=6f9802c6bf" defer></script>
+    <script src="support.js?v=4665e0c0e5" defer></script>
+    <script src="app.js?v=672d452e9a" defer></script>
+    <script src="dashboard.js?v=aa0c8dc1d8" defer></script>
   </head>
   <body>
     <header class="status-bar" aria-live="polite">
@@ -33,6 +33,7 @@
       </div>
       <div id="update-banner" class="notice update-banner hidden" role="status">
         <span id="update-banner-text"></span>
+        <a id="update-notes" class="hidden" href="https://anasmalas.com/bcv2/changelog/" target="_blank" rel="noopener">What's new</a>
         <a id="update-link" class="hidden" href="https://anasmalas.com/bcv2/update/">Update your card</a>
       </div>
 
@@ -44,10 +45,16 @@
           </div>
           <form id="voltage-form" class="request-bar">
             <label><span>Voltage</span><span class="field-with-unit"><input id="voltage-input" type="number" inputmode="decimal" min="3.3" max="48" step="0.02" value="5" required><b>V</b></span></label>
-            <label><span>Current</span><span class="field-with-unit"><input id="current-input" type="number" inputmode="decimal" min="0.1" max="5" step="0.1" placeholder="Max"><b>A</b></span></label>
+            <label><span>Current</span><span class="field-with-unit"><input id="current-input" type="number" inputmode="decimal" min="0.5" max="5" step="0.1" placeholder="Max"><b>A</b></span></label>
             <label class="preference-field"><span>Supply</span><select id="preference-input"><option value="auto">Automatic</option><option value="fixed">Fixed PDO</option><option value="pps">PPS</option><option value="spr-avs">SPR AVS</option><option value="epr-avs">EPR AVS</option></select></label>
             <button class="button button-primary request-submit" type="submit" disabled>Request</button>
           </form>
+          <div class="ramp-row">
+            <label class="ramp-toggle"><input id="ramp-enabled" type="checkbox"> Ramp to it <em>(charger dependent)</em></label>
+            <label class="ramp-field">over <input id="ramp-ms" type="number" inputmode="numeric" min="0" max="600000" step="100" value="2000" disabled> ms</label>
+            <label class="ramp-field">in <select id="ramp-step" class="compact-select" disabled><option value="100">0.1 V</option><option value="500">0.5 V</option><option value="1000" selected>1 V</option><option value="5000">5 V</option><option value="10000">10 V</option></select> steps</label>
+          </div>
+          <p id="ramp-note" class="ramp-note hidden">Some chargers won't play nice with this. They can refuse a step, fall behind, or reset the connection, which turns LOAD off. Small steps need PPS or AVS: a fixed supply only has the voltages it lists. The console sends one request per step and waits for the charger to confirm each one, so a slow charger stretches the ramp.</p>
           <div id="request-feedback" class="request-feedback" aria-live="polite"><span class="feedback-dot"></span><span>Connect to request a contract.</span></div>
           <p class="pd-flow-note"><strong>PD flow:</strong> the source advertises PDOs, the card requests one operating point, then <code>Accept</code> + <code>PS_RDY</code> make it active. Above the contracted current limit, a fixed supply normally trips protection and removes or cycles VBUS; PPS can enter constant-current (CL) regulation instead. See the USB-PD primer below.</p>
           <div class="capability-table-wrap">
@@ -80,11 +87,11 @@
             <div class="chart-wrap"><canvas id="power-chart" aria-label="Live voltage, current, and power chart"></canvas><div id="chart-empty" class="chart-empty">Stream is ready. Connect the card to begin plotting.</div><div id="chart-cursor" class="chart-cursor hidden" aria-live="polite"></div></div>
             <div class="live-readings" aria-label="Live measurements">
               <div class="reading reading-voltage"><span>Voltage</span><strong><b id="reading-voltage">—</b><small>V</small></strong></div>
-              <div class="reading reading-current"><span>Current</span><strong><b id="reading-current">—</b><small>A</small></strong></div>
+              <div class="reading reading-current"><span>Current <button id="current-tare" class="tare-button" type="button" disabled title="Zero the current shown here from the last second of readings. The card is not changed.">Tare</button></span><strong><b id="reading-current">—</b><small>A</small></strong><em id="current-tare-note" class="tare-note hidden"></em></div>
               <div class="reading reading-power"><span>Power</span><strong><b id="reading-power">—</b><small>W</small></strong></div>
             </div>
           </div>
-          <div class="chart-legend" aria-hidden="true"><span id="average-state" class="average-state">Display: 250 ms average · CSV: raw</span><span id="sample-count">0 samples</span></div>
+          <div class="chart-legend"><span id="five-volt-note" class="five-volt-note hidden">Charger ripple affects measurement quality at 5V. Request a higher voltage for lower measurement noise.</span><span id="average-state" class="average-state">Display: 250 ms average · CSV: raw</span><span id="sample-count">0 samples</span></div>
         </section>
       </div>
 
@@ -106,6 +113,19 @@
               <button id="enter-epr-button" class="button button-secondary command-button" data-command="enter-epr" type="button" disabled>Enter EPR</button>
               <button id="epr-caps-button" class="button button-secondary command-button" data-command="epr-caps" type="button" disabled>Refresh list</button>
               <button id="exit-epr-button" class="button button-warning command-button" data-command="exit-epr" type="button" disabled>Exit EPR</button>
+            </div>
+          </div>
+          <div class="action-group">
+            <span>Card display</span>
+            <div>
+              <button id="display-button" class="button button-secondary" type="button" disabled>LEDs and brightness</button>
+            </div>
+          </div>
+          <div class="action-group">
+            <span>Firmware updates</span>
+            <div class="news-box">
+              <div class="news-links"><a class="button button-secondary news-link" href="https://github.com/AnasMalas/bcv2-releases" target="_blank" rel="noopener">Watch on GitHub</a><a class="button button-quiet news-link" href="https://anasmalas.com/bcv2/changelog.xml" target="_blank" rel="noopener">Feed</a><a class="button button-quiet news-link" href="https://anasmalas.com/bcv2/changelog/" target="_blank" rel="noopener">What's new</a></div>
+              <small class="news-note">Get told when new firmware is out. On GitHub, press Watch, pick Custom and tick Releases, and GitHub emails you. Or add the feed to a feed reader.</small>
             </div>
           </div>
           <div class="action-group">
@@ -167,6 +187,16 @@
       <label class="bug-include"><input id="bug-include-log" type="checkbox" checked> Include the console log</label>
       <p id="bug-dialog-note" class="bug-note"></p>
       <div class="dialog-actions"><button id="bug-cancel" class="button button-quiet" type="button">Cancel</button><button id="bug-save" class="button button-secondary" type="button">Save</button><button id="bug-send" class="button button-primary" type="button">Send</button></div>
+    </dialog>
+
+    <dialog id="display-dialog" class="bug-dialog display-dialog" aria-labelledby="display-dialog-title">
+      <h2 id="display-dialog-title">LEDs and brightness</h2>
+      <label class="display-slider"><span>Brightness <output id="display-brightness-value" for="display-brightness"></output></span><input id="display-brightness" type="range" min="0" max="43" step="1"></label>
+      <label class="display-slider"><span>Contrast <output id="display-contrast-value" for="display-contrast"></output></span><input id="display-contrast" type="range" min="0" max="57" step="1"></label>
+      <label class="bug-include"><input id="display-zeros" type="checkbox"> Show leading zeros</label>
+      <label class="bug-include"><input id="display-marks" type="checkbox"> Show graduation marks on the capability bar</label>
+      <p id="display-note" class="bug-note"></p>
+      <div class="dialog-actions"><button id="display-defaults" class="button button-quiet" type="button">Return to defaults</button><button id="display-done" class="button button-primary" type="button">Done</button></div>
     </dialog>
   </body>
 </html>

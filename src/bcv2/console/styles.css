@@ -85,6 +85,14 @@ input:focus, select:focus { border-color: var(--green); box-shadow: 0 0 0 2px rg
 .button-quiet { height: 29px; padding: 0 8px; background: #10171b; }
 .button-toggle[aria-pressed="true"] { color: #b8f2f1; background: var(--green-deep); border-color: #08706f; }
 .button-compact { height: 29px; }
+.ramp-row { display: flex; flex-wrap: wrap; gap: 4px 14px; align-items: center; margin-top: 5px; padding: 0 3px; color: var(--muted); font-size: .68rem; }
+.ramp-row label { display: flex; gap: 5px; align-items: center; }
+.ramp-toggle { color: var(--text); }
+.ramp-toggle em { color: var(--amber); font-style: normal; }
+.ramp-toggle input { width: auto; height: auto; accent-color: var(--green); }
+.ramp-field input { width: 76px; height: 26px; padding: 0 6px; font-size: .68rem; }
+.ramp-field select { height: 26px; }
+.ramp-note { margin: 4px 3px 0; color: var(--amber); font-size: .64rem; line-height: 1.4; }
 .request-feedback { display: flex; gap: 7px; align-items: center; min-height: 27px; padding: 0 3px; color: var(--muted); font-size: .7rem; }
 .request-feedback .feedback-dot { width: 6px; height: 6px; background: #69767d; border-radius: 50%; }
 .request-feedback.pending { color: var(--amber); }
@@ -134,7 +142,10 @@ table { width: 100%; border-spacing: 0; border-collapse: collapse; }
 #power-chart { display: block; width: 100%; height: 100%; }
 .chart-empty { position: absolute; inset: 0; display: grid; place-items: center; color: #65737b; font-size: .76rem; pointer-events: none; }
 .chart-cursor { position: absolute; top: 9px; right: 9px; padding: 6px 8px; color: #dfe8e4; background: rgb(8 13 16 / 88%); border: 1px solid var(--line-bright); border-radius: 6px; font: .69rem/1.45 "Cascadia Code", Consolas, monospace; pointer-events: none; }
-.chart-legend { display: flex; gap: 14px; align-items: center; justify-content: flex-end; height: 25px; color: var(--muted); font-size: .65rem; }
+.chart-legend { display: flex; flex-wrap: wrap; gap: 2px 14px; align-items: center; justify-content: flex-end; min-height: 25px; color: var(--muted); font-size: .65rem; }
+.chart-legend > span:not(.five-volt-note) { white-space: nowrap; }
+/* Shown while VBUS is about 5 V, where the LEDs pull the card's supply down. */
+.five-volt-note { margin-right: auto; color: #e6c27a; line-height: 1.35; }
 /* Live readouts beside the graph, one per band. The padding lines each tile
    up with its band: the chart draws 7 px below its 1 px border and leaves
    20 px for the time axis, with 6 px between bands. */
@@ -145,6 +156,10 @@ table { width: 100%; border-spacing: 0; border-collapse: collapse; }
 .reading strong { display: flex; align-items: baseline; gap: 4px; margin-top: 2px; white-space: nowrap; }
 .reading b { font: 650 1.5rem/1.1 "Cascadia Code", Consolas, monospace; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
 .reading small { color: currentColor; font-size: .78rem; font-weight: 800; opacity: .75; }
+.reading > span { display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+.tare-button { white-space: nowrap; padding: 1px 7px; color: var(--muted); background: transparent; border: 1px solid var(--line-bright); border-radius: 6px; font-size: .58rem; font-weight: 750; letter-spacing: .04em; text-transform: none; }
+.tare-button[aria-pressed="true"] { color: #b8f2f1; background: var(--green-deep); border-color: #08706f; }
+.tare-note { color: var(--muted); font-size: .6rem; font-style: normal; }
 .reading-voltage { color: var(--voltage); }.reading-current { color: var(--current); }.reading-power { color: var(--power); }
 
 .actions-panel { margin-top: 10px; padding: 11px 14px 13px; }
@@ -154,6 +169,10 @@ table { width: 100%; border-spacing: 0; border-collapse: collapse; }
 .action-group > div { display: flex; flex-wrap: wrap; gap: 5px; }
 .action-group .button { flex: 1 1 90px; height: 30px; padding: 0 8px; }
 .button-warning { color: #ffd7c4; background: #342019; border-color: #80503f; }
+.action-group > .news-box { flex-direction: column; }
+.news-links { display: flex; flex-wrap: wrap; gap: 5px; }
+.action-group .news-link { display: inline-flex; flex: 1 1 auto; align-items: center; justify-content: center; white-space: nowrap; text-decoration: none; }
+.news-note { color: var(--muted); font-size: .62rem; line-height: 1.35; }
 .telemetry-note { margin: 7px 2px 0; color: var(--muted); font-size: .62rem; line-height: 1.4; }
 
 .terminal-panel { margin-top: 10px; padding: 11px 14px 13px; }
@@ -182,7 +201,7 @@ code { color: #8be1b0; font-family: "Cascadia Code", Consolas, monospace; }
 .notice { margin-bottom: 8px; padding: 8px 10px; border-radius: 8px; font-size: .76rem; }.notice-error { color: #ffd2cf; background: #3d1b1c; border: 1px solid #7c3635; }
 .update-banner { color: var(--muted); background: var(--surface-soft); border: 1px solid var(--line); }
 .update-banner.update-available { color: var(--text); background: #2c2414; border-color: #6b5325; }
-.update-banner a { color: var(--cyan); }
+.update-banner a { margin-left: 8px; color: var(--cyan); }
 .bug-notice { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px; color: var(--muted); background: var(--surface); border: 1px solid var(--line); }
 .bug-notice a { color: var(--cyan); }
 .bug-notice-actions { display: flex; gap: 6px; }
@@ -199,6 +218,10 @@ code { color: #8be1b0; font-family: "Cascadia Code", Consolas, monospace; }
 .bug-dialog .bug-include input { width: auto; height: auto; accent-color: var(--green); }
 .bug-note { min-height: 1.2em; color: var(--muted); font-size: .72rem; }
 .dialog-actions { display: flex; justify-content: flex-end; gap: 6px; }
+.display-dialog .display-slider { margin-bottom: 12px; }
+.display-dialog .display-slider > span { display: flex; justify-content: space-between; gap: 8px; }
+.display-slider output { color: var(--muted); }
+.display-slider input { display: block; width: 100%; margin-top: 4px; accent-color: var(--green); }
 
 @media (max-width: 1180px) {
   .status-bar { grid-template-columns: auto auto 1fr auto; }.device-chip { display: none; }
@@ -219,4 +242,5 @@ code { color: #8be1b0; font-family: "Cascadia Code", Consolas, monospace; }
   .chart-area { grid-template-columns: 1fr; }
   .live-readings { order: -1; grid-template-rows: none; grid-template-columns: repeat(3, minmax(0, 1fr)); padding: 0; }
   .reading { padding: 6px 8px; }.reading b { font-size: 1.05rem; }.reading small { font-size: .65rem; }
+  .reading > span { flex-wrap: wrap; justify-content: flex-start; gap: 3px; }
 }

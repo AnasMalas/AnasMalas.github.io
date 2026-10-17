@@ -5,12 +5,15 @@
 // quick reconnect. Nothing leaves the browser once reports are off, unless
 // the user sends one.
 (() => {
-  const CONSOLE_VERSION = "2026.10.01";
+  const CONSOLE_VERSION = "2026.10.17";
   const MANIFEST_URL = "https://anasmalas.com/bcv2/firmware.json";
   // The report service (report-service/, a Worker routed on the site's own
   // /api/*), so the page's connect-src already allows it. Empty disables
   // sending: reports can then only be saved or copied.
   const REPORT_URL = "https://anasmalas.com/api/report";
+  // Release notes, one section per version (#v1-1 for v1.1), and how to
+  // follow them.
+  const CHANGELOG_URL = "https://anasmalas.com/bcv2/changelog/";
   // "false" turns automatic reports off; anything else, or nothing, is on.
   const OPT_IN_KEY = "bcv2.bug-reports.opt-in";
   // "seen" once the notice about automatic reports was answered.
@@ -60,6 +63,23 @@
 
   function formatBuild(build) {
     return `0x${(build >>> 0).toString(16).toUpperCase().padStart(8, "0")}`;
+  }
+
+  // Release names, from v1.0 on. Older and unreleased builds keep their hex
+  // IDs (0x01050046 to 0x01050048 led up to v1.1).
+  const VERSION_NAMES = Object.freeze({
+    [0x01050045]: "v1.0",
+    [0x01050049]: "v1.1",
+  });
+
+  /** A build's release name, or its hex ID if it has none. */
+  function buildName(build) {
+    return VERSION_NAMES[build >>> 0] ?? formatBuild(build);
+  }
+
+  /** The changelog section for a release name ("v1.1" is #v1-1), or "". */
+  function notesAnchor(name) {
+    return /^v\d+(\.\d+)*$/.test(name) ? `#${name.replaceAll(".", "-")}` : "";
   }
 
   /**
@@ -149,11 +169,13 @@
     CONSOLE_VERSION,
     QUICK_RECONNECT_MS,
     browserSummary,
+    buildName,
     buildReport,
     formatBuild,
     parseBuild,
     redactLine,
     updateStatus,
+    notesAnchor,
     vbusMissesContract,
   });
 
@@ -169,6 +191,7 @@
     noticeOk: $("#bug-notice-ok"),
     bannerText: $("#update-banner-text"),
     bannerLink: $("#update-link"),
+    bannerNotes: $("#update-notes"),
     optIn: $("#bug-opt-in"),
     optInNote: $("#bug-opt-in-note"),
     reportButton: $("#report-bug"),
@@ -266,13 +289,18 @@
     ui.banner.classList.toggle("hidden", status.state === "unknown");
     ui.banner.classList.toggle("update-available", status.state === "update");
     ui.bannerLink.classList.toggle("hidden", status.state !== "update");
+    ui.bannerNotes.classList.toggle("hidden", status.state === "unknown");
     if (status.state === "unknown") return;
+    // An update links to its notes; otherwise, to how to hear of the next one.
+    const latestName = buildName(status.latest);
+    ui.bannerNotes.href = CHANGELOG_URL + (status.state === "update" ? notesAnchor(latestName) : "#follow");
+    ui.bannerNotes.textContent = status.state === "update" ? `What's new in ${latestName}` : "Get told about the next one";
     const product = manifest.product;
     ui.bannerText.textContent = status.state === "latest"
-      ? `Firmware ${formatBuild(build)} is the latest version.`
+      ? `Firmware ${buildName(build)} is the latest version.`
       : status.state === "update"
-        ? `Firmware update available: ${formatBuild(build)} → ${formatBuild(status.latest)}${product.notes ? `. ${product.notes}` : "."}`
-        : `This card runs ${formatBuild(build)}, which isn't a public release. The latest release is ${formatBuild(status.latest)}.`;
+        ? `Firmware update available: ${buildName(build)} → ${buildName(status.latest)}${product.notes ? `. ${product.notes}` : "."}`
+        : `This card runs ${buildName(build)}, which isn't a public release. The latest release is ${buildName(status.latest)}.`;
   }
 
   function currentReport(kind, reason, description = "", includeLog = true) {
