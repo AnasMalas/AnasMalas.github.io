@@ -95,48 +95,77 @@
     );
   }
 
-  // Ramp mode (console only). A ramp follows the straight line from
-  // startMv to targetMv over durationMs, at `rate` changes a second (one of
-  // RAMP_RATES). Change k of n is due to land at k/n of the time. Voltages
-  // snap to the supply's request grid (20 mV for PPS, 100 mV for AVS), a
-  // change that snaps to the voltage before it is dropped, and the last
-  // change is the target itself.
-  const RAMP_RATES = Object.freeze([10, 5, 2, 1, 0.5]);
-  const rampGridMv = (preference) => (/avs$/.test(preference) ? 100 : 20);
+  // Ramp mode (console only). The console sends one change at a time and
+  // the next as soon as the last is confirmed, or minIntervalMs after the
+  // last was sent if that is later (the rate limiter). rampNext picks it:
+  // the rest of the way is split evenly over the changes that fit in
+  // remainingMs (the first lands changeMs after it is sent, the rest one
+  // cycle apart), so the last lands within half a cycle of the end, and the
+  // change goes as far toward the first of those points as the charger
+  // allows. Stops are grid points of a PPS or AVS range (20 or
+  // 100 mV, ranges in order of preference) or fixed PDO voltages. When none
+  // lies before that point (a slow ramp, or a gap between ranges), the
+  // change waits until the line reaches the nearest stop, or the target if
+  // there is none. Stops keep RAMP_CLEARANCE_MV clear of the target, so the
+  // target's contract, rounded down to its supply's step, always differs
+  // from the last stop's. Returns { mv, supply, waitMs }; supply is null for
+  // the target itself.
+  const RAMP_CLEARANCE_MV = 100;
+  const rampGridMv = (supply) => (/avs$/.test(supply) ? 100 : 20);
 
-  function rampPlan(startMv, targetMv, durationMs, rate, gridMv) {
-    const plan = [];
-    if (!Number.isFinite(startMv) || !Number.isFinite(targetMv) || startMv === targetMv
-      || !(durationMs >= 0) || !(rate > 0) || !(gridMv > 0)) {
-      return plan;
+  function rampNext(currentMv, targetMv, remainingMs, changeMs, ranges, fixedMv, minIntervalMs = 0) {
+    const cycleMs = Math.max(changeMs, minIntervalMs);
+    const changesLeft = Math.round((remainingMs - changeMs) / cycleMs) + 1;
+    if (changesLeft <= 1 || currentMv === targetMv) return { mv: targetMv, supply: null, waitMs: 0 };
+    const up = targetMv > currentMv;
+    const past = (a, b) => (up ? a > b : a < b);
+    const snap = up ? Math.floor : Math.ceil;
+    const edgeMv = up ? targetMv - RAMP_CLEARANCE_MV : targetMv + RAMP_CLEARANCE_MV;
+    const lineMv = currentMv + (targetMv - currentMv) / changesLeft;
+    const aimMv = past(lineMv, edgeMv) ? edgeMv : lineMv;
+    const usable = (mv) => past(mv, currentMv) && !past(mv, edgeMv);
+    let next = null;
+    const consider = (stop) => {
+      if (usable(stop.mv) && (next === null || past(next.mv, stop.mv))) next = stop;
+    };
+    for (const { supply, low, high } of ranges) {
+      const grid = rampGridMv(supply);
+      const lowMv = Math.ceil(low / grid) * grid;
+      const highMv = Math.floor(high / grid) * grid;
+      if (lowMv > highMv) continue;
+      const clamp = (mv) => Math.min(highMv, Math.max(lowMv, mv));
+      const reachMv = snap(clamp(aimMv) / grid) * grid;
+      if (usable(reachMv) && !past(reachMv, aimMv)) return { mv: reachMv, supply, waitMs: 0 };
+      consider({ mv: clamp(snap(currentMv / grid) * grid + (up ? grid : -grid)), supply });
     }
-    const count = Math.max(1, Math.round((durationMs * rate) / 1000));
-    for (let k = 1; k <= count; k += 1) {
-      const mv = k === count
-        ? targetMv
-        : Math.round((startMv + ((targetMv - startMv) * k) / count) / gridMv) * gridMv;
-      if (mv !== (plan.at(-1)?.mv ?? startMv)) plan.push({ mv, atMs: (durationMs * k) / count });
+    let reachMv = null;
+    for (const mv of fixedMv) {
+      if (usable(mv) && !past(mv, aimMv) && (reachMv === null || past(mv, reachMv))) reachMv = mv;
+      consider({ mv, supply: "fixed" });
     }
-    return plan;
+    if (reachMv !== null) return { mv: reachMv, supply: "fixed", waitMs: 0 };
+    const stop = next ?? { mv: targetMv, supply: null };
+    const waitMs = (Math.abs(stop.mv - currentMv) / Math.abs(targetMv - currentMv)) * remainingMs - changeMs;
+    return { ...stop, waitMs: Math.max(0, waitMs) };
   }
 
-  // The fastest offered rate a charger keeps up with, given how long a
-  // change takes it from request to ready; slower than all of them if
-  // needed.
-  function rampRateFor(changeMs) {
-    return RAMP_RATES.find((rate) => 1000 / rate >= changeMs) ?? 1000 / changeMs;
-  }
-
-  // A ramp step counts once telemetry shows the contract at the step and
-  // VBUS has followed it. Some chargers acknowledge a request and keep the
-  // old voltage, so the contract alone is not enough; the VBUS margin is
-  // the firmware's own restore check (1/8 + 0.5 V). The contract margin
-  // covers PPS and AVS rounding (20 and 100 mV units).
+  // A change counts once telemetry shows a new contract at it and VBUS has
+  // followed. The contract is the request rounded down to the supply's step
+  // (exact for fixed, 20 mV for PPS, 100 mV for AVS, any of them for auto).
+  // It must differ from the last one: 20 mV steps are within rounding of
+  // the old contract, and accepting that sent requests faster than the
+  // charger finished them until the card's queue was full (Busy). Some
+  // chargers acknowledge a request and keep the old voltage, so the
+  // contract alone is not enough; the VBUS margin is the firmware's own
+  // restore check (1/8 + 0.5 V).
   const RAMP_CONTRACT_READY = 1 << 1;
-  function rampStepReached(sample, stepMv) {
+  const RAMP_ROUNDING_MV = Object.freeze({ fixed: 1, pps: 20, "spr-avs": 100, "epr-avs": 100, auto: 100 });
+  function rampStepReached(sample, stepMv, previousMv, supply) {
+    const roundingMv = RAMP_ROUNDING_MV[supply] ?? 100;
     return Boolean(sample)
       && (sample.flags & RAMP_CONTRACT_READY) !== 0
-      && Math.abs(sample.contractMv - stepMv) <= 100
+      && sample.contractMv !== previousMv
+      && sample.contractMv <= stepMv && stepMv - sample.contractMv < roundingMv
       && Math.abs(sample.vbusMv - stepMv) <= stepMv / 8 + 500;
   }
 
@@ -848,10 +877,9 @@
     DISPLAY,
     FrameDecoder,
     displayPayload,
-    RAMP_RATES,
+    RAMP_CLEARANCE_MV,
     rampGridMv,
-    rampPlan,
-    rampRateFor,
+    rampNext,
     rampStepReached,
     boundedVoltageCeiling,
     hardResetCauseName,

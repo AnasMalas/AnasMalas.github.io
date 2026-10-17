@@ -4,9 +4,17 @@
   const PAYLOAD_LENGTH = 22;
   const CSV_HEADER = "timestamp_ms,vbus_mv,current_ma,power_mw,contract_mv,contract_ma,attached,load_enabled";
   const FLAG_ATTACHED = 1 << 0;
+  const FLAG_LOAD_REQUESTED = 1 << 2;
   const FLAG_OUTPUT_EFFECTIVE = 1 << 3;
+  // Set when the output started only after the card stepped the voltage down
+  // and back (WARN I), until LOAD next turns on (v1.2 and later; 0 before).
+  const FLAG_INRUSH_ROUTINE = 1 << 4;
+  const INRUSH_LINE = "WARN I (inrush): the output did not start when LOAD turned on. Factors including inrush current can trip the output switch, so the card ran its inrush reduction routine: it stepped the voltage down and back up, and the output started.";
   const FLAG_LOAD_SAFETY_V1 = 1 << 10;
   const LOAD_SAFETY_MASK = (1 << 1) | (1 << 2) | FLAG_OUTPUT_EFFECTIVE | (1 << 9) | (1 << 11);
+  // What last turned the LOAD request off, in bits 12-14 (v1.2 and later;
+  // 0 before).
+  const LOAD_OFF_REASONS = ["", "LOAD key", "APPLY", "USB command or library", "brake", "PD session change"];
 
   const u16 = (bytes, offset) => bytes[offset] | (bytes[offset + 1] << 8);
   const u32 = (bytes, offset) => (bytes[offset] | (bytes[offset + 1] << 8)
@@ -44,7 +52,14 @@
   function loadSafetyLine(sample) {
     if (!(sample.flags & FLAG_LOAD_SAFETY_V1)) return "LOAD safety details require firmware build 0x01050018 or newer";
     const has = (bit) => Boolean(sample.flags & (1 << bit));
-    return `LOAD: contract=${has(1)} requested=${has(2)} effective=${has(3)} OPA-high=${has(9)} brake-latched=${has(11)} VBUS=${(sample.vbusMv / 1000).toFixed(2)}V`;
+    const reason = has(2) ? "" : LOAD_OFF_REASONS[(sample.flags >> 12) & 7] ?? "";
+    return `LOAD: contract=${has(1)} requested=${has(2)}${reason ? ` (off by ${reason})` : ""} effective=${has(3)} OPA-high=${has(9)} brake-latched=${has(11)} VBUS=${(sample.vbusMv / 1000).toFixed(2)}V`;
+  }
+
+  // True while LOAD is on and the inrush routine started it.
+  function inrushRoutineUsed(sample) {
+    const both = FLAG_INRUSH_ROUTINE | FLAG_LOAD_REQUESTED;
+    return (sample.flags & both) === both;
   }
 
   function rollingAverage(points, windowMs) {
@@ -77,5 +92,7 @@
     return averaged;
   }
 
-  globalThis.Bcv2ProductTelemetry = Object.freeze({ CSV_HEADER, decode, csvRow, rollingAverage, loadSafetyFlags, loadSafetyLine });
+  globalThis.Bcv2ProductTelemetry = Object.freeze({
+    CSV_HEADER, INRUSH_LINE, decode, csvRow, rollingAverage, loadSafetyFlags, loadSafetyLine, inrushRoutineUsed,
+  });
 })();

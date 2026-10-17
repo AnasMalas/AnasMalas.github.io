@@ -1,6 +1,6 @@
 // Prints a BCv2 release's notes as Markdown, for its GitHub release:
 //   node tools/bcv2-release-notes.js v1.1 > notes.md
-//   gh release create v1.1 --repo AnasMalas/bcv2-releases --title v1.1 --notes-file notes.md <bin>
+//   gh release create v1.1 --repo AnasMalas/bcv2-releases --title "Firmware v1.1" --notes-file notes.md <bin>
 // The notes come from src/_data/bcv2Releases.json, the same file as the
 // changelog page and its feed.
 const fs = require("node:fs");

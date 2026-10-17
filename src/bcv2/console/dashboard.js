@@ -42,9 +42,18 @@
   const MAX_HISTORY_MS = 10 * 60 * 1000;
   const CHART_LEFT = 62;
   const CHART_RIGHT = 10;
+  // The pointer line shows a sample's values only this close to it (about
+  // five samples at 20 Hz), so a gap shows only the time.
+  const POINTER_SAMPLE_MS = 250;
   const samples = [];
+  // Samples after a pause or a disconnect start a new segment, and the
+  // graph leaves the gap between segments blank.
+  let segment = 0;
+  // The pointer over the graph, in CSS px from its left edge, or null.
+  let pointerX = null;
   let previousDeviceMs = null;
   let previousLoadSafetyFlags = null;
+  let previousInrush = false;
   let latestLoadSample = null;
   let streamEnabled = localStorage.getItem(STORAGE_STREAM) !== "false";
   const savedAverage = localStorage.getItem(STORAGE_AVERAGE);
@@ -147,6 +156,18 @@
     return `−${Math.round(seconds)}s`;
   }
 
+  function nearestSample(points, ms) {
+    let low = 0;
+    let high = points.length - 1;
+    while (low < high) {
+      const middle = (low + high) >> 1;
+      if (points[middle].hostMs < ms) low = middle + 1;
+      else high = middle;
+    }
+    const before = points[low - 1];
+    return before && ms - before.hostMs <= points[low].hostMs - ms ? before : points[low];
+  }
+
   function drawChart() {
     const bounds = chart.getBoundingClientRect();
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -173,6 +194,10 @@
       { key: "watts", label: "W", color: "#f6bd60", fill: "rgba(246,189,96,.035)", digits: 1 },
     ];
 
+    const plotWidth = width - CHART_LEFT - CHART_RIGHT;
+    const xOf = (sample) => CHART_LEFT + (sample.hostMs - start) / windowMs * plotWidth;
+    const bands = [];
+
     context.font = '11px "Cascadia Code", Consolas, monospace';
     context.lineWidth = 1;
     context.textBaseline = "middle";
@@ -181,6 +206,8 @@
       const y = top + band * (bandHeight + gap);
       const observedMaximum = Math.max(...visible.map((sample) => sample[meta.key]), 0);
       const maximum = Math.max(meta.key === "volts" ? 1 : 0.4, niceMaximum(observedMaximum));
+      const yOf = (sample) => y + bandHeight - Math.min(1, sample[meta.key] / maximum) * bandHeight;
+      bands.push({ color: meta.color, yOf });
       context.fillStyle = meta.fill;
       context.fillRect(CHART_LEFT, y, width - CHART_LEFT - CHART_RIGHT, bandHeight);
       if (meta.key === "amps") {
@@ -210,9 +237,8 @@
         context.lineWidth = 1.7;
         context.beginPath();
         visible.forEach((sample, index) => {
-          const x = CHART_LEFT + (sample.hostMs - start) / windowMs * (width - CHART_LEFT - CHART_RIGHT);
-          const py = y + bandHeight - Math.min(1, sample[meta.key] / maximum) * bandHeight;
-          if (index === 0) context.moveTo(x, py); else context.lineTo(x, py);
+          if (index === 0 || sample.segment !== visible[index - 1].segment) context.moveTo(xOf(sample), yOf(sample));
+          else context.lineTo(xOf(sample), yOf(sample));
         });
         context.stroke();
       }
@@ -225,12 +251,37 @@
       context.textAlign = tick === 0 ? "left" : tick === 10 ? "right" : "center";
       context.fillText(formatTimeOffset(seconds), x, height - 3);
     }
+
+    // A line at the pointer across all three bands, with the nearest
+    // sample's values. Redrawn with each sample, so it stays current.
+    if (pointerX === null || visible.length === 0 || pointerX < CHART_LEFT || pointerX > width - CHART_RIGHT) {
+      ui.cursor.classList.add("hidden");
+      return;
+    }
+    const lineX = Math.round(pointerX) + .5;
+    context.strokeStyle = "rgba(223,232,228,.55)";
+    context.lineWidth = 1;
+    context.beginPath(); context.moveTo(lineX, top); context.lineTo(lineX, height - bottom); context.stroke();
+    const at = start + (pointerX - CHART_LEFT) / plotWidth * windowMs;
+    const ago = `−${formatValue((end - at) / 1000, 1)} s`;
+    const sample = nearestSample(visible, at);
+    if (Math.abs(sample.hostMs - at) > POINTER_SAMPLE_MS) {
+      ui.cursor.textContent = ago;
+    } else {
+      for (const { color, yOf } of bands) {
+        context.fillStyle = color;
+        context.beginPath(); context.arc(xOf(sample), yOf(sample), 3, 0, Math.PI * 2); context.fill();
+      }
+      ui.cursor.textContent = `${ago} · ${formatValue(sample.volts, 3)} V · ${formatValue(sample.amps, 3)} A · ${formatValue(sample.watts, 3)} W`;
+    }
+    ui.cursor.classList.remove("hidden");
   }
 
   function observeLoadSafety(sample) {
     if (previousDeviceMs !== null && previousDeviceMs < 0xffff0000 && sample.timestampMs + 1000 < previousDeviceMs) {
       globalThis.Bcv2Transport.logDiagnostic(`Board uptime restarted: ${previousDeviceMs} ms → ${sample.timestampMs} ms. The MCU rebooted; inspect the black box for a power-fail record.`);
       previousLoadSafetyFlags = null;
+      previousInrush = false;
     }
     previousDeviceMs = sample.timestampMs;
     latestLoadSample = sample;
@@ -239,6 +290,9 @@
       previousLoadSafetyFlags = loadSafetyFlags;
       globalThis.Bcv2Transport.logDiagnostic(telemetryCodec.loadSafetyLine(sample));
     }
+    const inrush = telemetryCodec.inrushRoutineUsed(sample);
+    if (inrush && !previousInrush) globalThis.Bcv2Transport.logDiagnostic(telemetryCodec.INRUSH_LINE);
+    previousInrush = inrush;
   }
 
   function applyTare(point) {
@@ -272,7 +326,7 @@
   function addSample(sample) {
     const volts = sample.vbusMv / 1000;
     const rawAmps = sample.currentMa / 1000;
-    const point = applyTare({ hostMs: Date.now(), deviceMs: sample.timestampMs, volts, rawAmps });
+    const point = applyTare({ hostMs: Date.now(), deviceMs: sample.timestampMs, volts, rawAmps, segment });
     samples.push(point);
     const cutoff = point.hostMs - MAX_HISTORY_MS;
     while (samples.length > 0 && samples[0].hostMs < cutoff) samples.shift();
@@ -286,6 +340,11 @@
       telemetryWarning = "ldo";
       ui.systemStatus.textContent = "LDO limiting";
       ui.systemDetail.textContent = "Display brightness is being reduced automatically";
+      ui.systemStatus.parentElement.classList.add("warning");
+    } else if (telemetryCodec.inrushRoutineUsed(sample)) {
+      telemetryWarning = "inrush";
+      ui.systemStatus.textContent = "Inrush routine";
+      ui.systemDetail.textContent = "The output started after the card stepped the voltage down and back";
       ui.systemStatus.parentElement.classList.add("warning");
     } else if (telemetryWarning !== null) {
       telemetryWarning = null;
@@ -372,9 +431,12 @@
     };
   }
 
+  // The steps look even, so brightness is shown as a share of the steps,
+  // not of the light level.
+  const brightnessPercent = (prefs) => percent((prefs.brightness + 1) / display.scales.length);
+
   function showDisplayValues(prefs) {
-    // The steps look even, so the step says more than the light level.
-    ui.brightnessValue.textContent = `${prefs.brightness + 1} of ${display.scales.length}${isDefault(prefs.brightness, "brightness")}`;
+    ui.brightnessValue.textContent = `${brightnessPercent(prefs)} (${prefs.brightness + 1} of ${display.scales.length})${isDefault(prefs.brightness, "brightness")}`;
     ui.contrastValue.textContent = `dim dots at ${percent(prefs.dim / display.full)}${isDefault(prefs.dim, "dim")}`;
   }
 
@@ -386,21 +448,44 @@
     showDisplayValues(prefs);
   }
 
+  // A slider sends each step as it is dragged, one change at a time: the
+  // next waits for the card's reply (or DISPLAY_REPLY_MS), and only the
+  // latest step made meanwhile goes, so a fast drag cannot fill the card's
+  // USB queue.
+  const DISPLAY_REPLY_MS = 250;
+  let displaySending = false;
+  let displayNext = null;
+  let displayReplied = null;
+
   async function sendDisplay(prefs) {
-    const [brightness, dim, flags] = globalThis.PdControlProtocol.displayPayload(prefs);
-    displayPrefs = { brightness, dim, flags };
-    renderDisplayForm(displayPrefs);
-    try {
-      await globalThis.Bcv2Transport.sendFrame(display.command, Uint8Array.of(brightness, dim, flags));
-      ui.displayNote.textContent = DISPLAY_HELP;
-    } catch (error) {
-      ui.displayNote.textContent = `Could not change it: ${error.message}`;
+    displayNext = prefs;
+    if (displaySending) return;
+    displaySending = true;
+    while (displayNext) {
+      const [brightness, dim, flags] = globalThis.PdControlProtocol.displayPayload(displayNext);
+      displayNext = null;
+      displayPrefs = { brightness, dim, flags };
+      renderDisplayForm(displayPrefs);
+      const replied = new Promise((resolve) => {
+        displayReplied = resolve;
+        setTimeout(resolve, DISPLAY_REPLY_MS);
+      });
+      try {
+        await globalThis.Bcv2Transport.sendFrame(display.command, Uint8Array.of(brightness, dim, flags));
+        ui.displayNote.textContent = DISPLAY_HELP;
+        await replied;
+      } catch (error) {
+        ui.displayNote.textContent = `Could not change it: ${error.message}`;
+      }
     }
+    displayReplied = null;
+    displaySending = false;
   }
 
   function updateDisplayButton() {
     const connected = Boolean(globalThis.Bcv2Transport?.isConnected());
     ui.displayButton.disabled = !connected || displayPrefs === null;
+    ui.displayButton.textContent = connected && displayPrefs ? `LEDs and brightness (${brightnessPercent(displayPrefs)})` : "LEDs and brightness";
     ui.displayButton.title = connected && displayPrefs === null ? "Needs firmware v1.1 or later." : "";
     if (ui.displayButton.disabled && ui.displayDialog.open) ui.displayDialog.close();
   }
@@ -410,6 +495,7 @@
     if (frame.kind === 0x81) {
       const payload = frame.payload;
       displayPrefs = payload.length === 32 ? { brightness: payload[29], dim: payload[30], flags: payload[31] } : null;
+      displayReplied?.();
       if (displayPrefs && !ui.displayDialog.open) renderDisplayForm(displayPrefs);
       updateDisplayButton();
     } else if (frame.kind === 0xa5) {
@@ -436,6 +522,7 @@
 
   ui.stream.addEventListener("click", () => {
     streamEnabled = !streamEnabled;
+    segment += 1;
     savePreference(STORAGE_STREAM, String(streamEnabled));
     updateControls(); scheduleDraw();
   });
@@ -475,12 +562,15 @@
     ui.displayNote.textContent = DISPLAY_HELP;
     ui.displayDialog.showModal();
   });
+  // Sliders send while dragged (each step, see sendDisplay); the boxes when
+  // ticked.
   for (const input of [ui.brightness, ui.contrast]) {
-    input.addEventListener("input", () => showDisplayValues(displayForm()));
+    input.addEventListener("input", () => {
+      showDisplayValues(displayForm());
+      void sendDisplay(displayForm());
+    });
   }
-  // One command per change (a slider sends when it is let go), so the log
-  // gets one line set per change, not one per pixel dragged.
-  for (const input of [ui.brightness, ui.contrast, ui.zeros, ui.marks]) {
+  for (const input of [ui.zeros, ui.marks]) {
     input.addEventListener("change", () => void sendDisplay(displayForm()));
   }
   ui.displayDefaults.addEventListener("click", () => void sendDisplay(display.defaults));
@@ -490,6 +580,7 @@
     if (build) deviceBuild = Number.parseInt(build[1], 16);
   });
   globalThis.addEventListener("bcv2-disconnected", () => {
+    segment += 1;
     displayPrefs = null;
     deviceBuild = null;
     updateDisplayButton();
@@ -498,17 +589,14 @@
     ui.fiveVolt.classList.add("hidden");
   });
 
-  chart.addEventListener("mousemove", (event) => {
-    const visible = visibleSamples();
-    if (visible.length === 0) return ui.cursor.classList.add("hidden");
-    const rect = chart.getBoundingClientRect();
-    const ratio = Math.max(0, Math.min(1, (event.clientX - rect.left - CHART_LEFT) / Math.max(1, rect.width - CHART_LEFT - CHART_RIGHT)));
-    const index = Math.round(ratio * (visible.length - 1));
-    const sample = visible[index];
-    ui.cursor.textContent = `${formatValue(sample.volts, 3)} V · ${formatValue(sample.amps, 3)} A · ${formatValue(sample.watts, 3)} W`;
-    ui.cursor.classList.remove("hidden");
+  chart.addEventListener("pointermove", (event) => {
+    pointerX = event.clientX - chart.getBoundingClientRect().left;
+    scheduleDraw();
   });
-  chart.addEventListener("mouseleave", () => ui.cursor.classList.add("hidden"));
+  chart.addEventListener("pointerleave", () => {
+    pointerX = null;
+    scheduleDraw();
+  });
 
   const savedWindow = localStorage.getItem(STORAGE_WINDOW);
   if ([...ui.window.options].some((option) => option.value === savedWindow)) ui.window.value = savedWindow;

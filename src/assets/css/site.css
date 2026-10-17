@@ -1022,6 +1022,13 @@ html[data-theme="dark"] { --bg: #181818; --paper: #202020; --ink: #eee; --muted:
 .note-body .bcv2-tip h4 { margin-top: .8em; }
 .note-body .bcv2-tip p { font-size: 16px; }
 .note-body .bcv2-callout { padding: 16px 20px; border-left: 3px solid var(--accent); background: var(--soft); }
+/* An important firmware update, at the top of the guide. */
+.bcv2-alert { margin: 0 0 22px; padding: 18px 22px 20px; border: 1px solid #c27a26; border-left-width: 5px; background: rgb(242 160 40 / .13); }
+.bcv2-alert h2 { margin: 0 0 .35em; font-size: 22px; line-height: 1.25; }
+.bcv2-alert p { margin: 0 0 14px; font-size: 17px; }
+.bcv2-alert-go { display: inline-block; margin-right: 16px; padding: 9px 18px; border-radius: 6px; background: #c27a26; color: #fff; font-weight: 600; text-decoration: none; }
+.bcv2-alert-go:hover { background: #a9651b; color: #fff; }
+.bcv2-alert-notes { display: inline-block; padding: 9px 0; font-size: 16px; white-space: nowrap; }
 .note-body .bcv2-signoff { margin-top: 28px; }
 /* Last thing on the guide: where to update, whats new, how to follow. */
 .bcv2-updates { margin-top: 34px; }

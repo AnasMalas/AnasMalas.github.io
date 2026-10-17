@@ -7,13 +7,13 @@
     <meta name="theme-color" content="#0b0f12">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src https://anasmalas.com; object-src 'none'; base-uri 'none'; form-action 'none'">
     <title>The Negotiator II Power Control</title>
-    <link rel="stylesheet" href="styles.css?v=4e2a685549">
-    <script src="protocol.js?v=1f3e27c607" defer></script>
+    <link rel="stylesheet" href="styles.css?v=046f2590c6">
+    <script src="protocol.js?v=798193d5ca" defer></script>
     <script src="console-log.js?v=010ae64352" defer></script>
-    <script src="product-telemetry.js?v=6c0e011221" defer></script>
-    <script src="support.js?v=07c0a393b3" defer></script>
-    <script src="app.js?v=07ea4e7d2a" defer></script>
-    <script src="dashboard.js?v=aa0c8dc1d8" defer></script>
+    <script src="product-telemetry.js?v=aca0ee9e49" defer></script>
+    <script src="support.js?v=d996bd3681" defer></script>
+    <script src="app.js?v=31f4167eaf" defer></script>
+    <script src="dashboard.js?v=4ef883bc90" defer></script>
   </head>
   <body>
     <header class="status-bar" aria-live="polite">
@@ -41,15 +41,16 @@
           </div>
           <form id="voltage-form" class="request-bar">
             <label><span>Voltage</span><span class="field-with-unit"><input id="voltage-input" type="number" inputmode="decimal" min="5" max="48" step="0.02" value="5" required><b>V</b></span></label>
-            <label><span>Current</span><span class="field-with-unit"><input id="current-input" type="number" inputmode="decimal" min="0.5" max="5" step="0.1" placeholder="Max"><b>A</b></span></label>
+            <label><span>Current</span><span class="field-with-unit"><input id="current-input" type="number" inputmode="decimal" min="0.5" max="5" step="0.05" placeholder="Max"><b>A</b></span></label>
             <label class="preference-field"><span>Supply</span><select id="preference-input"><option value="auto">Automatic</option><option value="fixed">Fixed PDO</option><option value="pps">PPS</option><option value="spr-avs">SPR AVS</option><option value="epr-avs">EPR AVS</option></select></label>
             <button class="button button-primary request-submit" type="submit" disabled>Request</button>
           </form>
           <div class="ramp-box">
-            <label class="ramp-toggle"><input id="ramp-enabled" type="checkbox"> Ramp requests <em>(charger dependent)</em></label>
+            <label class="ramp-toggle"><input id="ramp-enabled" type="checkbox"> Ramp requests <em>(charger dependent, unstable under some conditions)</em></label>
             <label class="ramp-field"><span>Ramp duration target:</span><input id="ramp-ms" type="number" inputmode="numeric" min="0" max="600000" step="100" value="2000" disabled> ms</label>
-            <label class="ramp-field"><span>Ramp rate target:</span><select id="ramp-rate" class="compact-select" disabled><option value="10">10</option><option value="5" selected>5</option><option value="2">2</option><option value="1">1</option><option value="0.5">0.5</option></select> changes/s</label>
-            <p id="ramp-note" class="ramp-note hidden">Applies to all requests. Needs PPS or AVS. Some chargers reset, which turns LOAD off. The rate drops if the charger can't keep up.</p>
+            <label class="ramp-field"><span>Ramp rate limiter:</span><select id="ramp-rate" class="compact-select" disabled><option value="0" selected>Off</option><option value="10">10 changes/s</option><option value="5">5 changes/s</option><option value="2">2 changes/s</option><option value="1">1 change/s</option><option value="0.5">0.5 changes/s</option></select></label>
+            <div id="ramp-status" class="request-feedback ramp-status hidden" aria-live="polite"></div>
+            <p id="ramp-note" class="ramp-note hidden">Applies to all requests. Each change goes out once the last is confirmed, or later if the rate limiter is on. Where PPS and AVS don't reach, it steps through the fixed voltages. Some chargers reset, which turns LOAD off.</p>
           </div>
           <div id="request-feedback" class="request-feedback" aria-live="polite"><span class="feedback-dot"></span><span>Connect to request a contract.</span></div>
           <p class="pd-flow-note"><strong>PD flow:</strong> the source advertises PDOs, the card requests one operating point, then <code>Accept</code> + <code>PS_RDY</code> make it active. Above the contracted current limit, a fixed supply normally trips protection and removes or cycles VBUS; PPS can enter constant-current (CL) regulation instead. See the USB-PD primer below.</p>
@@ -64,7 +65,6 @@
           <div class="monitor-toolbar">
             <div><p class="eyebrow">Live measurements</p><h2 id="monitor-heading">Power monitor</h2></div>
             <div class="toolbar-actions" aria-label="Inspect and manage">
-              <button class="button button-quiet command-button" data-command="device" type="button" disabled>Inspect device</button>
               <button id="graph-stream" class="button button-toggle" type="button" aria-pressed="true">Stream: On</button>
               <div class="average-control" role="group" aria-label="Rolling average for displayed measurements">
                 <span>Average</span><button class="average-button" data-average-ms="0" type="button" aria-pressed="false" title="Show each raw 20 Hz sample">Off</button><button class="average-button" data-average-ms="250" type="button" aria-pressed="true" title="Trailing 250 ms average, about five samples at 20 Hz">250 ms</button><button class="average-button" data-average-ms="1000" type="button" aria-pressed="false" title="Trailing one-second average, about twenty samples at 20 Hz">1 s</button>
@@ -80,10 +80,10 @@
             <span><small>Available</small><strong id="usable-current">—</strong><em id="current-confidence">Awaiting negotiation</em></span>
           </div>
           <div class="chart-area">
-            <div class="chart-wrap"><canvas id="power-chart" aria-label="Live voltage, current, and power chart"></canvas><div id="chart-empty" class="chart-empty">Stream is ready. Connect the card to begin plotting.</div><div id="chart-cursor" class="chart-cursor hidden" aria-live="polite"></div></div>
+            <div class="chart-wrap"><canvas id="power-chart" aria-label="Live voltage, current, and power chart"></canvas><div id="chart-empty" class="chart-empty">Stream is ready. Connect the card to begin plotting.</div><div id="chart-cursor" class="chart-cursor hidden" aria-hidden="true"></div></div>
             <div class="live-readings" aria-label="Live measurements">
               <div class="reading reading-voltage"><span>Voltage</span><strong><b id="reading-voltage">—</b><small>V</small></strong></div>
-              <div class="reading reading-current"><span>Current <button id="current-tare" class="tare-button" type="button" disabled title="Zero the current shown here from the last second of readings. The card is not changed.">Tare</button></span><strong><b id="reading-current">—</b><small>A</small></strong><em id="current-tare-note" class="tare-note hidden"></em></div>
+              <div class="reading reading-current"><span>Current</span><strong><b id="reading-current">—</b><small>A</small></strong><div class="tare-row"><button id="current-tare" class="tare-button" type="button" disabled title="Zero the current shown here from the last second of readings. The card is not changed.">Tare</button><em id="current-tare-note" class="tare-note hidden"></em></div></div>
               <div class="reading reading-power"><span>Power</span><strong><b id="reading-power">—</b><small>W</small></strong></div>
             </div>
           </div>
@@ -107,6 +107,7 @@
           <div class="action-group">
             <span>Capabilities</span>
             <div>
+              <button class="button button-secondary command-button" data-command="device" type="button" disabled>Inspect device</button>
               <button class="button button-secondary command-button" data-command="caps" type="button" disabled>Refresh list</button>
               <button id="enter-epr-button" class="button button-secondary command-button" data-command="enter-epr" type="button" disabled>Enter EPR</button>
               <button id="epr-caps-button" class="button button-secondary command-button" data-command="epr-caps" type="button" disabled>Refresh EPR list</button>
@@ -145,10 +146,11 @@
           <details class="reference-card"><summary>Reading diagnostics</summary><div class="reference-content"><dl>
             <div><dt>Hard reset</dt><dd>The direction, firmware cause, and recovery interval are shown. Output permission is cleared immediately.</dd></div><div><dt>Protocol lost</dt><dd>The PD session ended; the card returns to passive retry and USB may disappear if VBUS falls.</dd></div><div><dt>Black box</dt><dd>Shows the latest six of up to 16 RAM events. A falling VDD event commits the journal; live Hard Resets also appear in the terminal.</dd></div><div><dt>RAW transport</dt><dd>Exact USB CDC chunks, not CC packets. Read boundaries are arbitrary.</dd></div><div><dt>Telemetry</dt><dd>20 Hz measured VBUS/current samples. Power is calculated in the browser.</dd></div>
           </dl></div></details>
-          <details class="reference-card"><summary>Front-panel warning letters</summary><div class="reference-content"><p>WARN spells one Morse letter, then pauses. A dot is a quick flash and a dash a long one. If several warnings are active, each letter plays in turn. R plays three times; T plays three times, or until LOAD is pressed if the dip cut the load.</p><dl>
-            <div><dt>R &nbsp;·–·</dt><dd>Request failed: the charger refused it and the previous contract remains, or it agreed three times without delivering the voltage and the card stays at 5 V.</dd></div>
+          <details class="reference-card"><summary>Front-panel warning letters</summary><div class="reference-content"><p>WARN spells one Morse letter, then pauses. A dot is a quick flash and a dash a long one. If several warnings are active, each letter plays in turn. R and I play three times; T plays three times, or until LOAD is pressed if the dip cut the load.</p><dl>
+            <div><dt>R &nbsp;·–·</dt><dd>Request rejected: the charger refused it, or offers nothing that matches (such as PPS from a charger that has none), and the previous contract remains. Or it agreed three times without delivering the voltage, and the card stays at 5 V.</dd></div>
             <div><dt>S &nbsp;···</dt><dd>Save unavailable: the flash page for the next settings save could not be prepared or written, so changes may not be remembered.</dd></div>
             <div><dt>T &nbsp;–</dt><dd>Tripped: the supply dropped out and it showed. It cut the load (T stays until LOAD is pressed again), restarted the display, or ended the PD session. A brief dip the board rode through is not shown.</dd></div>
+            <div><dt>I &nbsp;··</dt><dd>Inrush: the output did not start when LOAD turned on. Factors including inrush current can trip the output switch, so the card ran its inrush reduction routine: it stepped the voltage down and back up, and then the output started. The card does this when the output draws under 80 mA just after LOAD turns on, and shows I only if it draws more afterwards; a smaller load counts as no load. Not used in EPR.</dd></div>
             <div><dt>F &nbsp;··–·</dt><dd>Fallback: earlier boots lost power while restoring the remembered setting, so this boot runs a fixed PDO, 5 V, or no USB-PD at all. Press APPLY to retry the remembered setting, or adjust with the +/− keys first. Unplugging and reconnecting also retries it in full.</dd></div>
           </dl><p>During display power limiting, THERM LIM stays on, TEMP WARN blinks, and the digits drop their leading zeros. These indicate the regulator power model, not a measured board temperature. PPS CV/CL follows the source’s reported PPS status; both stay off if that status is unavailable.</p></div></details>
           <details id="pd-primer" class="reference-card reference-wide"><summary>USB-PD primer — PDOs, contracts, PPS, AVS, EPR and resets</summary><div class="reference-content pd-primer-grid">
@@ -160,7 +162,7 @@
       </section>
 
       <section class="panel updates-panel" aria-labelledby="updates-heading">
-        <h2 id="updates-heading" class="updates-title">Firmware updates</h2>
+        <div class="panel-heading updates-heading"><div><p class="eyebrow">Card firmware</p><h2 id="updates-heading">Firmware updates</h2></div></div>
         <div id="update-bottom" class="update-slot">
           <div id="update-banner" class="notice update-banner hidden" role="status">
             <span id="update-banner-text"></span>

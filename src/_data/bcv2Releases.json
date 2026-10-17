@@ -3,6 +3,23 @@
   "feed": "/bcv2/changelog.xml",
   "releases": [
     {
+      "version": "v1.2",
+      "build": "0x0105004F",
+      "date": "2026-10-17",
+      "changes": [
+        "Fixed the output sometimes not turning on at higher voltages into large loads, like big capacitors. If it doesnt start, the card drops the voltage until it does and goes straight back up. WARN plays I when it had to.",
+        "The voltage and current digits follow changes about three times faster.",
+        "The display no longer blinks when the console makes a request.",
+        "0.5A shows as 0.5, not .5, with leading zeros off.",
+        "WARN has longer gaps between letters, so its easier to read.",
+        "The LOAD key is less sensitive to electrical noise."
+      ],
+      "console": [
+        "Shows what last turned the output off.",
+        "Says when the card had to drop the voltage to start the output."
+      ]
+    },
+    {
       "version": "v1.1",
       "build": "0x01050049",
       "date": "2026-10-17",

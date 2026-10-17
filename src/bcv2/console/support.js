@@ -65,10 +65,12 @@
   }
 
   // Release names, from v1.0 on. Older and unreleased builds keep their hex
-  // IDs (0x01050046 to 0x01050048 led up to v1.1).
+  // IDs (0x01050046 to 0x01050048 led up to v1.1, 0x0105004A to 0x0105004E
+  // to v1.2).
   const VERSION_NAMES = Object.freeze({
     [0x01050045]: "v1.0",
     [0x01050049]: "v1.1",
+    [0x0105004F]: "v1.2",
   });
 
   /** A build's release name, or its hex ID if it has none. */
@@ -288,11 +290,15 @@
     const manifest = await loadManifest();
     const status = updateStatus(build, manifest);
     const update = status.state === "update";
+    // A release the manifest marks important fixes something owners should
+    // not wait on: its banner reads and looks like a warning.
+    const important = update && manifest.product.important === true;
     // A due update goes at the top of the page. Otherwise the message sits
     // at the bottom, next to the links for following updates.
     (update ? ui.bannerTop : ui.bannerBottom)?.append(ui.banner);
     ui.banner.classList.toggle("hidden", status.state === "unknown");
     ui.banner.classList.toggle("update-available", update);
+    ui.banner.classList.toggle("update-important", important);
     ui.bannerLink.classList.toggle("hidden", !update);
     ui.bannerNotes.classList.toggle("hidden", !update);
     if (status.state === "unknown") return;
@@ -303,7 +309,7 @@
     ui.bannerText.textContent = status.state === "latest"
       ? `Firmware ${buildName(build)} is the latest version.`
       : status.state === "update"
-        ? `Firmware update available: ${buildName(build)} → ${buildName(status.latest)}${product.notes ? `. ${product.notes}` : "."}`
+        ? `${important ? "Important firmware update" : "Firmware update available"}: ${buildName(build)} → ${buildName(status.latest)}${product.notes ? `. ${product.notes}` : "."}`
         : `This card runs ${buildName(build)}, which isn't a public release. The latest release is ${buildName(status.latest)}.`;
   }
 

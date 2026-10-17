@@ -19,6 +19,18 @@ shareImageAlt: The Negotiator II on a power bank on a tree stump in a Japanese g
     <p class="note-dek">My second PCB business card, and a USB PD power supply you can carry anywhere.</p>
   </header>
 
+  {% set fw = bcv2Firmware.product %}
+  {% if fw.important %}
+  <div class="shell reading-width">
+    <section class="bcv2-alert" aria-labelledby="bcv2-alert-title">
+      <h2 id="bcv2-alert-title">Please update your card to firmware {{ fw.name }}</h2>
+      <p>{{ fw.notes }}</p>
+      <a class="bcv2-alert-go" href="/bcv2/update/">Update your card <span aria-hidden="true">→</span></a>
+      <a class="bcv2-alert-notes" href="/bcv2/changelog/#{{ fw.name | replace('.', '-') }}">Whats new in {{ fw.name }}</a>
+    </section>
+  </div>
+  {% endif %}
+
   <div class="shell reading-width">
     <a class="bcv2-console-card" href="/bcv2/console/">
       <span class="bcv2-console-shot">
@@ -159,14 +171,15 @@ shareImageAlt: The Negotiator II on a power bank on a tree stump in a Japanese g
 
       <div class="bcv2-panel">
         <h3>What the lights mean</h3>
-        <p>{{ silk("THERM LIM") }} means the card is dimming its display to keep its regulator happy, which happens at higher voltages. Nothing is wrong.</p>
-        <p>{{ silk("PPS CV") }} and {{ silk("PPS CL") }} glow dimly whenever you're on PPS. The bright one shows if the charger is holding your voltage (CV) or limiting your current (CL).</p>
-        <p>If {{ silk("WARNING") }} blinks, its spelling a letter in Morse code:</p>
+        <p>{{ silk("THERM LIM") }} lights up and {{ silk("TEMP WARN") }} blinks when the card dims its display to keep its regulator happy. That only happens above 21V, nothing is wrong.</p>
+        <p>{{ silk("PPS CV") }} and {{ silk("PPS CL") }} glow dimly whenever you're on PPS. The bright one shows if the charger is holding your voltage (CV) or limiting your current (CL). Some chargers dont report this correctly, and some only do CL at certain currents.</p>
+        <p>If {{ silk("WARNING") }} blinks, its spelling a letter in Morse code. If theres more than one, they take turns:</p>
         <ul class="bcv2-morse">
           <li><strong>R</strong>{{ morse(".-.") }}<span>the charger said no, or it said yes but never gave the voltage (the card tries a few times first).</span></li>
           <li><strong>S</strong>{{ morse("...") }}<span>your settings couldnt be saved.</span></li>
-          <li><strong>T</strong>{{ morse("-") }}<span>the power dropped out.</span></li>
+          <li><strong>T</strong>{{ morse("-") }}<span>the power dipped. If that turned your load off, it keeps going until you turn it back on.</span></li>
           <li><strong>F</strong>{{ morse("..-.") }}<span>the card lost power a few times while restoring your last setting, so it started with a safer one. Press {{ key("APPLY") }} to try again.</span></li>
+          <li><strong>I</strong>{{ morse("..") }}<span>the output didnt start straight away into your load (big capacitors do this), so the card dropped the voltage until it did, then went back up. From firmware v1.2.</span></li>
         </ul>
       </div>
 

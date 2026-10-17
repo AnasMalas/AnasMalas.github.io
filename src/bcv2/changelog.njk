@@ -25,7 +25,7 @@ permalink: /bcv2/changelog/
 
     {% for release in notes.releases %}
     <section class="bcv2-release" id="{{ release.version | replace('.', '-') }}">
-      <h2>{{ release.version }}{% if release.date %} <span class="bcv2-release-date">{{ release.date | readableDate }}</span>{% else %} <span class="beta">Coming</span>{% endif %}</h2>
+      <h2>Firmware {{ release.version }}{% if release.date %} <span class="bcv2-release-date">{{ release.date | readableDate }}</span>{% else %} <span class="beta">Coming</span>{% endif %}</h2>
       {% if not release.date %}<p class="update-aside">Not released yet, this list might change.</p>{% endif %}
       <ul>
         {% for change in release.changes %}<li>{{ change }}</li>

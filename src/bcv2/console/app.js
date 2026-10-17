@@ -28,6 +28,7 @@ const ui = {
   voltageCeilingInputs: document.querySelectorAll('input[name="voltage-ceiling"]'),
   voltageCeilingNote: $("#voltage-ceiling-note"),
   requestFeedback: $("#request-feedback"),
+  rampStatus: $("#ramp-status"),
   requestButton: $("#voltage-form .request-submit"),
   rampEnabled: $("#ramp-enabled"),
   rampMs: $("#ramp-ms"),
@@ -103,6 +104,7 @@ const state = {
   telemetry: null,
   // An AbortController while a ramp runs.
   ramp: null,
+  rampChangeMs: null,
 };
 
 const encoder = new TextEncoder();
@@ -119,20 +121,27 @@ const DEVELOPMENT_USB_FILTERS = Object.freeze([
 ]);
 const IS_ANDROID = /Android/i.test(navigator.userAgent);
 
-function setFeedback(message, isError = false) {
+function fillFeedback(element, message, stateName) {
   const dot = document.createElement("span");
   dot.className = "feedback-dot";
   const text = document.createElement("span");
   text.textContent = message;
-  ui.requestFeedback.replaceChildren(dot, text);
-  ui.requestFeedback.classList.remove("pending", "success");
-  ui.requestFeedback.classList.toggle("error", isError);
+  element.replaceChildren(dot, text);
+  for (const name of ["pending", "success", "error"]) element.classList.toggle(name, stateName === name);
+}
+
+function setFeedback(message, isError = false) {
+  fillFeedback(ui.requestFeedback, message, isError ? "error" : "");
 }
 
 function setRequestFeedback(message, stateName = "") {
-  setFeedback(message, stateName === "error");
-  ui.requestFeedback.classList.toggle("pending", stateName === "pending");
-  ui.requestFeedback.classList.toggle("success", stateName === "success");
+  fillFeedback(ui.requestFeedback, message, stateName);
+}
+
+// Ramp messages go in the ramp box, under its controls.
+function setRampFeedback(message, stateName = "") {
+  fillFeedback(ui.rampStatus, message, stateName);
+  ui.rampStatus.classList.remove("hidden");
 }
 
 function setSystemStatus(level, label, detail) {
@@ -611,10 +620,21 @@ globalThis.Bcv2Transport = Object.freeze({
   },
 });
 
+// The card's device reply sets the request ceiling, which stays at 5 V
+// until it arrives. The card drops a reply when its USB queue is full, so a
+// missing one is asked for again.
+const DEVICE_REPLY_MS = 400;
+const DEVICE_QUERIES = 3;
+
 async function initializeTransport() {
   try {
-    await sendCommand("device", { echo: false });
-    await new Promise((resolve) => setTimeout(resolve, 40));
+    for (let query = 0; query < DEVICE_QUERIES && state.connected && state.deviceMaxVoltageMillivolts === null; query += 1) {
+      await sendCommand("device", { echo: false });
+      const until = performance.now() + DEVICE_REPLY_MS;
+      while (state.connected && state.deviceMaxVoltageMillivolts === null && performance.now() < until) {
+        await new Promise((resolve) => setTimeout(resolve, 20));
+      }
+    }
     if (state.transport === "dev-text-console") {
       await sendCommand("status", { echo: false });
       await new Promise((resolve) => setTimeout(resolve, 80));
@@ -1439,13 +1459,16 @@ for (const input of ui.voltageCeilingInputs) {
 }
 
 // Ramp mode, off by default and never remembered: the console walks the
-// request to its target along a straight line, one request per change, and
-// waits for telemetry to confirm each change before it sends the next. It
-// times each change from request to ready and sends the next request that
-// much early, so changes land on time; a charger slower than the rate gets
-// fewer, bigger changes, so the ramp still takes the time asked. The card is
-// not changed.
+// request to its target, one request per change. It waits for telemetry to
+// confirm each change, then sends the next at once, aimed at the straight
+// line over the time left (protocol.js rampNext). Where PPS and AVS don't
+// reach, it steps through the fixed voltages in between. The card is not
+// changed.
 const RAMP_SETTLE_MS = 3000;
+// Request-to-ready time assumed for a ramp's first change, before any is
+// measured. Chargers have taken 50 to 250 ms; a low guess makes the first
+// change small rather than large.
+const RAMP_FIRST_CHANGE_MS = 100;
 const RAMP_FAILURE = /^(Rejected|Request rejected|Busy|Invalid|Unsupported command|Hard reset|Protocol lost|PD stopped|Detached)/;
 
 function updateRampControls() {
@@ -1455,15 +1478,18 @@ function updateRampControls() {
   ui.rampMs.disabled = !enabled || running;
   ui.rampRate.disabled = !enabled || running;
   ui.rampNote.classList.toggle("hidden", !enabled);
+  ui.rampStatus.classList.toggle("hidden", !enabled || !ui.rampStatus.hasChildNodes());
   ui.requestButton.textContent = running ? "Stop ramp" : enabled ? "Ramp" : "Request";
 }
 
 const plural = (count, noun) => `${count} ${noun}${count === 1 ? "" : "s"}`;
-const formatRate = (rate) => `${Number(rate.toFixed(2))} changes/s`;
 
 function rampDelay(ms, signal) {
   return new Promise((resolve, reject) => {
     if (signal.aborted) return reject(new Error("you pressed Stop"));
+    // No timer when there is nothing to wait for: a chained 0 ms timer can
+    // take 4 ms, and a fast charger changes in 50.
+    if (!(ms > 0)) return resolve();
     const onAbort = () => {
       clearTimeout(timer);
       reject(new Error("you pressed Stop"));
@@ -1476,22 +1502,24 @@ function rampDelay(ms, signal) {
   });
 }
 
-// Resolves when telemetry shows the step; a failure line, a disconnect,
-// Stop, or RAMP_SETTLE_MS without it rejects.
-function rampStepSettled(stepMv, signal) {
+// Resolves with the new contract once telemetry shows the change
+// (rampStepReached); a failure line, a disconnect, Stop, or RAMP_SETTLE_MS
+// without it rejects.
+function rampStepSettled(stepMv, previousMv, supply, signal) {
   return new Promise((resolve, reject) => {
-    const finish = (error) => {
+    const finish = (error, contractMv) => {
       clearTimeout(timer);
       globalThis.removeEventListener("pd-control-frame", onFrame);
       globalThis.removeEventListener("bcv2-device-line", onLine);
       globalThis.removeEventListener("bcv2-disconnected", onLost);
       signal.removeEventListener("abort", onAbort);
       if (error) reject(error);
-      else resolve();
+      else resolve(contractMv);
     };
     const onFrame = ({ detail: frame }) => {
       if (frame.kind !== 0xa5) return;
-      if (controlProtocol.rampStepReached(globalThis.Bcv2ProductTelemetry.decode(frame.payload), stepMv)) finish();
+      const sample = globalThis.Bcv2ProductTelemetry.decode(frame.payload);
+      if (controlProtocol.rampStepReached(sample, stepMv, previousMv, supply)) finish(null, sample.contractMv);
     };
     const onLine = ({ detail: line }) => {
       if (RAMP_FAILURE.test(line)) finish(new Error(line));
@@ -1509,18 +1537,22 @@ function rampStepSettled(stepMv, signal) {
   });
 }
 
-// The adjustable ranges (PPS, AVS) a ramp's in-between changes can use.
-// The firmware reports nothing over USB when it can't plan a request, so
-// the console checks these first.
-function rampRanges(preference) {
-  const types = { pps: ["PPS"], "spr-avs": ["SPR-AVS"], "epr-avs": ["EPR-AVS"] }[preference] ?? ["PPS", "SPR-AVS", "EPR-AVS"];
-  return [...state.pdos.values()]
-    .filter((pdo) => pdo.requestable && types.includes(pdo.type))
+// The charger's stops for a ramp: its PPS and AVS ranges (the asked supply
+// first, then PPS, SPR-AVS, EPR-AVS) and its fixed voltages.
+function rampStops(preference) {
+  const supplies = { PPS: "pps", "SPR-AVS": "spr-avs", "EPR-AVS": "epr-avs" };
+  const order = [preference, "pps", "spr-avs", "epr-avs"];
+  const pdos = [...state.pdos.values()].filter((pdo) => pdo.requestable);
+  const ranges = pdos
+    .filter((pdo) => supplies[pdo.type])
     .map((pdo) => ({
-      type: pdo.type,
+      supply: supplies[pdo.type],
       low: pdo.type === "EPR-AVS" ? Math.max(15000, pdo.minMillivolts) : pdo.minMillivolts,
       high: pdo.maxMillivolts,
-    }));
+    }))
+    .sort((a, b) => order.indexOf(a.supply) - order.indexOf(b.supply));
+  const fixedMv = pdos.filter((pdo) => pdo.type === "Fixed").map((pdo) => pdo.maxMillivolts);
+  return { ranges, fixedMv };
 }
 
 async function runRamp(targetMv, currentText, preference) {
@@ -1529,76 +1561,70 @@ async function runRamp(targetMv, currentText, preference) {
   if (durationText === "" || !Number.isFinite(durationMs) || durationMs < 0 || durationMs > 600000) {
     throw new Error("Ramp time must be 0 to 600000 ms.");
   }
-  const rate = Number(ui.rampRate.value);
+  // The rate limiter: changes at least this far apart (0: off).
+  const rateLimit = Number(ui.rampRate.value);
+  const minIntervalMs = rateLimit > 0 ? 1000 / rateLimit : 0;
   const startMv = state.telemetry?.contractMv;
   if (!state.telemetry || !(state.telemetry.flags & 2) || !startMv) {
     throw new Error("A ramp starts from the live contract. Wait for the readings, or turn the ramp off.");
   }
-  // A fixed PDO has only its own voltage, so the changes in between go as
-  // auto (PPS or AVS) and only the last keeps the asked supply.
-  const stepPreference = ["pps", "spr-avs", "epr-avs"].includes(preference) ? preference : "auto";
-  const ranges = rampRanges(stepPreference);
-  const lowMv = Math.min(startMv, targetMv);
-  const highMv = Math.max(startMv, targetMv);
-  const gridMv = stepPreference !== "auto" ? controlProtocol.rampGridMv(stepPreference)
-    : ranges.some((range) => range.type === "PPS" && range.low <= lowMv && range.high >= highMv) ? 20 : 100;
-  let plan = controlProtocol.rampPlan(startMv, targetMv, durationMs, rate, gridMv);
-  if (plan.length === 0) {
-    setRequestFeedback(`Already at ${displayMillivolts(targetMv)}.`, "success");
+  if (state.pdos.size === 0) {
+    throw new Error("Refresh the capability list first, so the ramp knows the charger's voltages.");
+  }
+  // Too close for the new contract to show in the readings.
+  if (Math.abs(targetMv - startMv) <= controlProtocol.RAMP_CLEARANCE_MV) {
+    await sendCommand(`request ${targetMv} ${currentText} ${preference}`);
+    setRampFeedback(`Request queued for ${displayMillivolts(targetMv)}. Within 0.1 V of the contract, so not ramped.`, "pending");
     return;
   }
-  const covered = ({ mv }) => ranges.some((range) => range.low <= mv && mv <= range.high);
-  if (!plan.slice(0, -1).every(covered)) {
-    throw new Error(state.pdos.size === 0
-      ? "Refresh the capability list first, so the ramp can check the charger's PPS and AVS ranges."
-      : `Can't ramp ${displayMillivolts(startMv)} to ${displayMillivolts(targetMv)}: the charger has no ${stepPreference === "auto" ? "PPS or AVS" : stepPreference.toUpperCase()} range for the voltages in between.`);
-  }
+  const { ranges, fixedMv } = rampStops(preference);
+  const inOneRange = (a, b) => ranges.some((range) => range.low <= Math.min(a, b) && Math.max(a, b) <= range.high);
   const controller = new AbortController();
   state.ramp = controller;
   updateRampControls();
   const began = performance.now();
-  // Request-to-ready time, averaged over the changes so far.
-  let changeMs = null;
-  let usedRate = rate;
+  // Request-to-ready time, averaged over the changes so far. The first
+  // change uses the last ramp's.
+  let changeMs = state.rampChangeMs ?? RAMP_FIRST_CHANGE_MS;
+  let currentMv = startMv;
+  let contractMv = startMv;
   let reached = 0;
-  let sent = 0;
-  addLog(`Ramp ${displayMillivolts(startMv)} to ${displayMillivolts(targetMv)} over ${durationMs} ms at ${formatRate(rate)}: ${plural(plan.length, "change")}`, "system");
+  let askedMv = null;
+  let lastSentAt = -Infinity;
+  addLog(`Ramp ${displayMillivolts(startMv)} to ${displayMillivolts(targetMv)} over ${durationMs} ms${rateLimit > 0 ? `, at most ${rateLimit} changes/s` : ""}`, "system");
   try {
-    for (let index = 0; index < plan.length; index += 1) {
-      const change = plan[index];
-      // Sent early by the charger's delay, so the change lands when due.
-      await rampDelay(began + change.atMs - (changeMs ?? 0) - performance.now(), controller.signal);
-      setRequestFeedback(`Ramp change ${index + 1} of ${plan.length}: ${displayMillivolts(change.mv)}…`, "pending");
-      const sentAt = performance.now();
-      await sendCommand(`request ${change.mv} ${currentText} ${change.mv === targetMv ? preference : stepPreference}`, { echo: false });
-      sent = index + 1;
-      await rampStepSettled(change.mv, controller.signal);
-      reached = index + 1;
-      const tookMs = performance.now() - sentAt;
-      changeMs = changeMs === null ? tookMs : (changeMs + tookMs) / 2;
-      // Slower than the rate: replan the rest with fewer, bigger changes.
-      const slower = controlProtocol.rampRateFor(changeMs);
-      if (reached < plan.length && slower < usedRate) {
-        const elapsedMs = performance.now() - began;
-        const rest = controlProtocol.rampPlan(change.mv, targetMv, Math.max(0, durationMs - elapsedMs), slower, gridMv)
-          .map(({ mv, atMs }) => ({ mv, atMs: elapsedMs + atMs }));
-        plan = [...plan.slice(0, reached), ...rest];
-        addLog(`Ramp: the charger takes about ${Math.round(changeMs)} ms per change, so ${formatRate(usedRate)} became ${formatRate(slower)}`, "system");
-        usedRate = slower;
+    for (;;) {
+      await rampDelay(lastSentAt + minIntervalMs - performance.now(), controller.signal);
+      const step = controlProtocol.rampNext(currentMv, targetMv, durationMs - (performance.now() - began), changeMs, ranges, fixedMv, minIntervalMs);
+      // The target keeps the asked supply. Stops name theirs, since auto
+      // takes a fixed PDO at an exact voltage.
+      const supply = step.supply ?? preference;
+      if (!inOneRange(currentMv, step.mv)) {
+        addLog(`Ramp: ${displayMillivolts(currentMv)} to ${displayMillivolts(step.mv)} in one change (no PPS or AVS in between)`, "system");
       }
+      await rampDelay(step.waitMs, controller.signal);
+      setRampFeedback(`Ramp change ${reached + 1}: ${displayMillivolts(step.mv)}…`, "pending");
+      const sentAt = performance.now();
+      lastSentAt = sentAt;
+      await sendCommand(`request ${step.mv} ${currentText} ${supply}`, { echo: false });
+      askedMv = step.mv;
+      contractMv = await rampStepSettled(step.mv, contractMv, supply, controller.signal);
+      const tookMs = performance.now() - sentAt;
+      changeMs = reached === 0 ? tookMs : (changeMs + tookMs) / 2;
+      reached += 1;
+      askedMv = null;
+      currentMv = step.mv;
+      if (step.supply === null) break;
     }
     const tookS = ((performance.now() - began) / 1000).toFixed(2);
-    const timing = usedRate < rate
-      ? ` The charger took about ${Math.round(changeMs)} ms per change, so it ran at ${Number(usedRate.toFixed(2))} instead of ${formatRate(rate)}.`
-      : ` Each request went out ${Math.round(changeMs)} ms early to cover the charger's delay.`;
-    setRequestFeedback(`Ramped to ${displayMillivolts(targetMv)}: ${plural(reached, "change")} in ${tookS} s (asked ${durationMs / 1000} s).${timing}`, "success");
+    setRampFeedback(`Ramped to ${displayMillivolts(targetMv)}: ${plural(reached, "change")} in ${tookS} s (asked ${durationMs / 1000} s). The charger took about ${Math.round(changeMs)} ms per change.`, "success");
     addLog(`Ramp done: ${plural(reached, "change")} in ${tookS} s, about ${Math.round(changeMs)} ms from request to ready`, "system");
   } catch (error) {
-    const at = displayMillivolts(reached === 0 ? startMv : plan[reached - 1].mv);
-    const inFlight = sent > reached ? ` ${displayMillivolts(plan[sent - 1].mv)} was already asked for.` : "";
-    setRequestFeedback(`Ramp stopped: ${error.message}. ${reached} of ${plural(plan.length, "change")} confirmed, the last at ${at}.${inFlight}`, "error");
-    addLog(`Ramp stopped after ${reached} of ${plan.length} changes: ${error.message}`, "system", "error");
+    const inFlight = askedMv === null ? "" : ` ${displayMillivolts(askedMv)} was already asked for.`;
+    setRampFeedback(`Ramp stopped at ${displayMillivolts(currentMv)} after ${plural(reached, "change")}: ${error.message}.${inFlight}`, "error");
+    addLog(`Ramp stopped at ${displayMillivolts(currentMv)} after ${plural(reached, "change")}: ${error.message}`, "system", "error");
   } finally {
+    if (reached > 0) state.rampChangeMs = changeMs;
     state.ramp = null;
     updateRampControls();
     updateActionAvailability();
@@ -1609,7 +1635,7 @@ async function runRamp(targetMv, currentText, preference) {
 // `request`. One ramp at a time; the form's button stops it.
 async function rampRequest(targetMv, currentText, preference) {
   if (state.ramp) {
-    setRequestFeedback("A ramp is running. Stop it first.", "error");
+    setRampFeedback("A ramp is running. Stop it first.", "error");
     return;
   }
   state.pendingPdoPosition = null;
@@ -1617,7 +1643,7 @@ async function rampRequest(targetMv, currentText, preference) {
   try {
     await runRamp(targetMv, currentText, preference);
   } catch (error) {
-    setRequestFeedback(error.message, "error");
+    setRampFeedback(error.message, "error");
   }
 }
 
