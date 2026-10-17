@@ -1499,7 +1499,7 @@ function rampStepSettled(stepMv, signal) {
     const onLost = () => finish(new Error("the card disconnected"));
     const onAbort = () => finish(new Error("you pressed Stop"));
     const timer = setTimeout(
-      () => finish(new Error(`the charger did not reach ${displayMillivolts(stepMv)} within ${RAMP_SETTLE_MS / 1000} s`)),
+      () => finish(new Error(`${displayMillivolts(stepMv)} didn't happen within ${RAMP_SETTLE_MS / 1000} s (refused, or the charger is slow)`)),
       RAMP_SETTLE_MS,
     );
     globalThis.addEventListener("pd-control-frame", onFrame);
@@ -1507,6 +1507,20 @@ function rampStepSettled(stepMv, signal) {
     globalThis.addEventListener("bcv2-disconnected", onLost);
     signal.addEventListener("abort", onAbort, { once: true });
   });
+}
+
+// The adjustable ranges (PPS, AVS) a ramp's in-between changes can use.
+// The firmware reports nothing over USB when it can't plan a request, so
+// the console checks these first.
+function rampRanges(preference) {
+  const types = { pps: ["PPS"], "spr-avs": ["SPR-AVS"], "epr-avs": ["EPR-AVS"] }[preference] ?? ["PPS", "SPR-AVS", "EPR-AVS"];
+  return [...state.pdos.values()]
+    .filter((pdo) => pdo.requestable && types.includes(pdo.type))
+    .map((pdo) => ({
+      type: pdo.type,
+      low: pdo.type === "EPR-AVS" ? Math.max(15000, pdo.minMillivolts) : pdo.minMillivolts,
+      high: pdo.maxMillivolts,
+    }));
 }
 
 async function runRamp(targetMv, currentText, preference) {
@@ -1520,11 +1534,24 @@ async function runRamp(targetMv, currentText, preference) {
   if (!state.telemetry || !(state.telemetry.flags & 2) || !startMv) {
     throw new Error("A ramp starts from the live contract. Wait for the readings, or turn the ramp off.");
   }
-  const gridMv = controlProtocol.rampGridMv(preference);
+  // A fixed PDO has only its own voltage, so the changes in between go as
+  // auto (PPS or AVS) and only the last keeps the asked supply.
+  const stepPreference = ["pps", "spr-avs", "epr-avs"].includes(preference) ? preference : "auto";
+  const ranges = rampRanges(stepPreference);
+  const lowMv = Math.min(startMv, targetMv);
+  const highMv = Math.max(startMv, targetMv);
+  const gridMv = stepPreference !== "auto" ? controlProtocol.rampGridMv(stepPreference)
+    : ranges.some((range) => range.type === "PPS" && range.low <= lowMv && range.high >= highMv) ? 20 : 100;
   let plan = controlProtocol.rampPlan(startMv, targetMv, durationMs, rate, gridMv);
   if (plan.length === 0) {
     setRequestFeedback(`Already at ${displayMillivolts(targetMv)}.`, "success");
     return;
+  }
+  const covered = ({ mv }) => ranges.some((range) => range.low <= mv && mv <= range.high);
+  if (!plan.slice(0, -1).every(covered)) {
+    throw new Error(state.pdos.size === 0
+      ? "Refresh the capability list first, so the ramp can check the charger's PPS and AVS ranges."
+      : `Can't ramp ${displayMillivolts(startMv)} to ${displayMillivolts(targetMv)}: the charger has no ${stepPreference === "auto" ? "PPS or AVS" : stepPreference.toUpperCase()} range for the voltages in between.`);
   }
   const controller = new AbortController();
   state.ramp = controller;
@@ -1543,7 +1570,7 @@ async function runRamp(targetMv, currentText, preference) {
       await rampDelay(began + change.atMs - (changeMs ?? 0) - performance.now(), controller.signal);
       setRequestFeedback(`Ramp change ${index + 1} of ${plan.length}: ${displayMillivolts(change.mv)}…`, "pending");
       const sentAt = performance.now();
-      await sendCommand(`request ${change.mv} ${currentText} ${preference}`, { echo: false });
+      await sendCommand(`request ${change.mv} ${currentText} ${change.mv === targetMv ? preference : stepPreference}`, { echo: false });
       sent = index + 1;
       await rampStepSettled(change.mv, controller.signal);
       reached = index + 1;
