@@ -1023,6 +1023,16 @@ html[data-theme="dark"] { --bg: #181818; --paper: #202020; --ink: #eee; --muted:
 .note-body .bcv2-tip p { font-size: 16px; }
 .note-body .bcv2-callout { padding: 16px 20px; border-left: 3px solid var(--accent); background: var(--soft); }
 .note-body .bcv2-signoff { margin-top: 28px; }
+/* Last thing on the guide: where to update, whats new, how to follow. */
+.bcv2-updates { margin-top: 34px; }
+.note-body .bcv2-updates h2 { margin: 0 0 .4em; }
+.bcv2-updates-links { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin: 1.1em 0; }
+.bcv2-updates-link { display: grid; gap: 4px; padding: 16px 20px; border: 1px solid var(--line-strong); background: var(--paper); color: var(--ink); text-decoration: none; transition: border-color .15s, transform .15s; }
+.bcv2-updates-link:hover { border-color: var(--accent); color: var(--ink); transform: translateY(-1px); }
+.bcv2-updates-name { font-size: 20px; font-weight: 600; }
+.bcv2-updates-name::after { content: " \2192"; color: var(--accent); }
+.bcv2-updates-line { color: var(--muted); font-size: 15px; }
+.note-body .bcv2-updates-follow { padding: 14px 18px; border-left: 3px solid var(--accent); background: var(--soft); font-size: 16px; }
 
 @media (max-width: 600px) {
   .bcv2-console-card { grid-template-columns: 1fr; gap: 14px; }
