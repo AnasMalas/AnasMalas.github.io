@@ -11,8 +11,7 @@
   // /api/*), so the page's connect-src already allows it. Empty disables
   // sending: reports can then only be saved or copied.
   const REPORT_URL = "https://anasmalas.com/api/report";
-  // Release notes, one section per version (#v1-1 for v1.1), and how to
-  // follow them.
+  // Release notes, one section per version (#v1-1 for v1.1).
   const CHANGELOG_URL = "https://anasmalas.com/bcv2/changelog/";
   // "false" turns automatic reports off; anything else, or nothing, is on.
   const OPT_IN_KEY = "bcv2.bug-reports.opt-in";
@@ -186,6 +185,8 @@
   const $ = (selector) => document.querySelector(selector);
   const ui = {
     banner: $("#update-banner"),
+    bannerTop: $("#update-top"),
+    bannerBottom: $("#update-bottom"),
     notice: $("#bug-notice"),
     noticeOff: $("#bug-notice-off"),
     noticeOk: $("#bug-notice-ok"),
@@ -286,15 +287,18 @@
     const build = parseBuild(support.firmware?.build);
     const manifest = await loadManifest();
     const status = updateStatus(build, manifest);
+    const update = status.state === "update";
+    // A due update goes at the top of the page. Otherwise the message sits
+    // at the bottom, next to the links for following updates.
+    (update ? ui.bannerTop : ui.bannerBottom)?.append(ui.banner);
     ui.banner.classList.toggle("hidden", status.state === "unknown");
-    ui.banner.classList.toggle("update-available", status.state === "update");
-    ui.bannerLink.classList.toggle("hidden", status.state !== "update");
-    ui.bannerNotes.classList.toggle("hidden", status.state === "unknown");
+    ui.banner.classList.toggle("update-available", update);
+    ui.bannerLink.classList.toggle("hidden", !update);
+    ui.bannerNotes.classList.toggle("hidden", !update);
     if (status.state === "unknown") return;
-    // An update links to its notes; otherwise, to how to hear of the next one.
     const latestName = buildName(status.latest);
-    ui.bannerNotes.href = CHANGELOG_URL + (status.state === "update" ? notesAnchor(latestName) : "#follow");
-    ui.bannerNotes.textContent = status.state === "update" ? `What's new in ${latestName}` : "Get told about the next one";
+    ui.bannerNotes.href = CHANGELOG_URL + notesAnchor(latestName);
+    ui.bannerNotes.textContent = `What's new in ${latestName}`;
     const product = manifest.product;
     ui.bannerText.textContent = status.state === "latest"
       ? `Firmware ${buildName(build)} is the latest version.`

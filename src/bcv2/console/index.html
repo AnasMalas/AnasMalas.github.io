@@ -7,12 +7,12 @@
     <meta name="theme-color" content="#0b0f12">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src https://anasmalas.com; object-src 'none'; base-uri 'none'; form-action 'none'">
     <title>The Negotiator II Power Control</title>
-    <link rel="stylesheet" href="styles.css?v=e6e6563f07">
+    <link rel="stylesheet" href="styles.css?v=d547856b72">
     <script src="protocol.js?v=ed55ccd959" defer></script>
     <script src="console-log.js?v=010ae64352" defer></script>
     <script src="product-telemetry.js?v=6c0e011221" defer></script>
-    <script src="support.js?v=4665e0c0e5" defer></script>
-    <script src="app.js?v=672d452e9a" defer></script>
+    <script src="support.js?v=07c0a393b3" defer></script>
+    <script src="app.js?v=a98979c97b" defer></script>
     <script src="dashboard.js?v=aa0c8dc1d8" defer></script>
   </head>
   <body>
@@ -31,11 +31,7 @@
         <span>Bug reports are on. If something goes wrong, the console sends an anonymous report to help fix the firmware: no card ID, no IP address. <a href="https://anasmalas.com/bcv2/#privacy" rel="noopener">What is sent?</a></span>
         <span class="bug-notice-actions"><button id="bug-notice-off" class="button button-quiet button-compact" type="button">Turn off</button><button id="bug-notice-ok" class="button button-secondary button-compact" type="button">OK</button></span>
       </div>
-      <div id="update-banner" class="notice update-banner hidden" role="status">
-        <span id="update-banner-text"></span>
-        <a id="update-notes" class="hidden" href="https://anasmalas.com/bcv2/changelog/" target="_blank" rel="noopener">What's new</a>
-        <a id="update-link" class="hidden" href="https://anasmalas.com/bcv2/update/">Update your card</a>
-      </div>
+      <div id="update-top"></div>
 
       <div class="dashboard-grid">
         <section class="panel power-panel" aria-labelledby="power-heading">
@@ -50,11 +46,11 @@
             <button class="button button-primary request-submit" type="submit" disabled>Request</button>
           </form>
           <div class="ramp-row">
-            <label class="ramp-toggle"><input id="ramp-enabled" type="checkbox"> Ramp to it <em>(charger dependent)</em></label>
+            <label class="ramp-toggle"><input id="ramp-enabled" type="checkbox"> Ramp requests <em>(charger dependent)</em></label>
             <label class="ramp-field">over <input id="ramp-ms" type="number" inputmode="numeric" min="0" max="600000" step="100" value="2000" disabled> ms</label>
             <label class="ramp-field">in <select id="ramp-step" class="compact-select" disabled><option value="100">0.1 V</option><option value="500">0.5 V</option><option value="1000" selected>1 V</option><option value="5000">5 V</option><option value="10000">10 V</option></select> steps</label>
           </div>
-          <p id="ramp-note" class="ramp-note hidden">Some chargers won't play nice with this. They can refuse a step, fall behind, or reset the connection, which turns LOAD off. Small steps need PPS or AVS: a fixed supply only has the voltages it lists. The console sends one request per step and waits for the charger to confirm each one, so a slow charger stretches the ramp.</p>
+          <p id="ramp-note" class="ramp-note hidden">Applies to every request, including the PDO buttons and typed commands. Some chargers refuse a step, fall behind or reset the connection, which turns LOAD off. Steps between fixed voltages need PPS or AVS. Each step waits for the charger to confirm it, so slow chargers take longer.</p>
           <div id="request-feedback" class="request-feedback" aria-live="polite"><span class="feedback-dot"></span><span>Connect to request a contract.</span></div>
           <p class="pd-flow-note"><strong>PD flow:</strong> the source advertises PDOs, the card requests one operating point, then <code>Accept</code> + <code>PS_RDY</code> make it active. Above the contracted current limit, a fixed supply normally trips protection and removes or cycles VBUS; PPS can enter constant-current (CL) regulation instead. See the USB-PD primer below.</p>
           <div class="capability-table-wrap">
@@ -102,16 +98,18 @@
         <p id="feature-status" class="telemetry-note">Connect to detect the available command set.</p>
         <div class="action-groups">
           <div class="action-group">
-            <span>Inspect</span>
+            <span>External load</span>
             <div>
-              <button class="button button-secondary command-button" data-command="caps" type="button" disabled>Capabilities</button>
+              <button class="button button-secondary command-button" data-command="output-on" type="button" disabled><svg class="button-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v8"/><path d="M6.6 6.6a7.6 7.6 0 1 0 10.8 0"/></svg>Output on</button>
+              <button class="button button-warning command-button" data-command="output-off" type="button" disabled><svg class="button-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v8"/><path d="M6.6 6.6a7.6 7.6 0 1 0 10.8 0"/></svg>Output off</button>
             </div>
           </div>
           <div class="action-group">
-            <span>EPR mode</span>
+            <span>Capabilities</span>
             <div>
+              <button class="button button-secondary command-button" data-command="caps" type="button" disabled>Refresh list</button>
               <button id="enter-epr-button" class="button button-secondary command-button" data-command="enter-epr" type="button" disabled>Enter EPR</button>
-              <button id="epr-caps-button" class="button button-secondary command-button" data-command="epr-caps" type="button" disabled>Refresh list</button>
+              <button id="epr-caps-button" class="button button-secondary command-button" data-command="epr-caps" type="button" disabled>Refresh EPR list</button>
               <button id="exit-epr-button" class="button button-warning command-button" data-command="exit-epr" type="button" disabled>Exit EPR</button>
             </div>
           </div>
@@ -119,20 +117,6 @@
             <span>Card display</span>
             <div>
               <button id="display-button" class="button button-secondary" type="button" disabled>LEDs and brightness</button>
-            </div>
-          </div>
-          <div class="action-group">
-            <span>Firmware updates</span>
-            <div class="news-box">
-              <div class="news-links"><a class="button button-secondary news-link" href="https://github.com/AnasMalas/bcv2-releases" target="_blank" rel="noopener">Watch on GitHub</a><a class="button button-quiet news-link" href="https://anasmalas.com/bcv2/changelog.xml" target="_blank" rel="noopener">Feed</a><a class="button button-quiet news-link" href="https://anasmalas.com/bcv2/changelog/" target="_blank" rel="noopener">What's new</a></div>
-              <small class="news-note">Get told when new firmware is out. On GitHub, press Watch, pick Custom and tick Releases, and GitHub emails you. Or add the feed to a feed reader.</small>
-            </div>
-          </div>
-          <div class="action-group">
-            <span>External load</span>
-            <div>
-              <button class="button button-secondary command-button" data-command="output-on" type="button" disabled>Output on</button>
-              <button class="button button-warning command-button" data-command="output-off" type="button" disabled>Output off</button>
             </div>
           </div>
         </div>
@@ -173,6 +157,19 @@
             <section><h3>How to read this page</h3><p><strong>Requested</strong> is what the card asks for. <strong>Contract</strong> is what the source accepted. <strong>Measured</strong> V/A comes from the card ADC and may differ because of tolerance, droop, or calibration. Above a fixed contract's current limit, source over-current protection normally removes or cycles VBUS. Under PPS, the source can instead enter CL mode and reduce voltage to hold the current limit. A <strong>Hard Reset</strong> restarts PD and can also cycle VBUS; LOAD permission is cleared for safety.</p></section>
           </div></details>
         </div>
+      </section>
+
+      <section class="panel updates-panel" aria-labelledby="updates-heading">
+        <h2 id="updates-heading" class="updates-title">Firmware updates</h2>
+        <div id="update-bottom" class="update-slot">
+          <div id="update-banner" class="notice update-banner hidden" role="status">
+            <span id="update-banner-text"></span>
+            <a id="update-notes" class="hidden" href="https://anasmalas.com/bcv2/changelog/" target="_blank" rel="noopener">What's new</a>
+            <a id="update-link" class="hidden" href="https://anasmalas.com/bcv2/update/">Update your card</a>
+          </div>
+        </div>
+        <div class="news-links"><a class="button button-secondary news-link" href="https://github.com/AnasMalas/bcv2-releases" target="_blank" rel="noopener">Watch on GitHub</a><a class="button button-quiet news-link" href="https://anasmalas.com/bcv2/changelog.xml" target="_blank" rel="noopener">Feed</a><a class="button button-quiet news-link" href="https://anasmalas.com/bcv2/changelog/" target="_blank" rel="noopener">What's new</a></div>
+        <small class="news-note">To get an email for new firmware, watch the releases on GitHub (Watch &gt; Custom &gt; Releases), or use the feed.</small>
       </section>
 
       <div class="legacy-hooks hidden" aria-hidden="true">

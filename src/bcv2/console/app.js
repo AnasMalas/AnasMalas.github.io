@@ -767,6 +767,10 @@ function pdoPreference(pdo) {
 }
 
 async function requestPdoVoltage(pdo, millivolts, label) {
+  if (ui.rampEnabled.checked) {
+    await rampRequest(millivolts, "max", pdoPreference(pdo));
+    return;
+  }
   state.pendingPdoPosition = pdo.position;
   renderCapabilities();
   setRequestFeedback(`Requesting ${displayMillivolts(millivolts)} from PDO ${pdo.position}…`, "pending");
@@ -1539,6 +1543,28 @@ async function runRamp(targetMv, currentText, preference) {
   }
 }
 
+// With ramp on, every request ramps: the form, the PDO buttons and a typed
+// `request`. One ramp at a time; the form's button stops it.
+async function rampRequest(targetMv, currentText, preference) {
+  if (state.ramp) {
+    setRequestFeedback("A ramp is running. Stop it first.", "error");
+    return;
+  }
+  state.pendingPdoPosition = null;
+  renderCapabilities();
+  try {
+    await runRamp(targetMv, currentText, preference);
+  } catch (error) {
+    setRequestFeedback(error.message, "error");
+  }
+}
+
+// A typed `request <mV> [max|<mA>] [<supply>]` (or `voltage ...`), or null.
+function typedRequest(command) {
+  const match = command.match(/^(?:request|voltage)\s+(\d+)(?:\s+(max|\d+))?(?:\s+(auto|fixed|pps|spr-avs|epr-avs))?$/i);
+  return match ? { millivolts: Number(match[1]), current: (match[2] ?? "max").toLowerCase(), preference: (match[3] ?? "auto").toLowerCase() } : null;
+}
+
 ui.rampEnabled.addEventListener("change", updateRampControls);
 updateRampControls();
 
@@ -1553,12 +1579,12 @@ ui.voltageForm.addEventListener("submit", async (event) => {
     // The card refuses less than 0.5 A.
     const current = toMilli(ui.currentInput.value, "Current", { optional: true, minimum: 0.5, maximum: 5 });
     const preference = ui.preferenceInput.value;
-    state.pendingPdoPosition = null;
-    renderCapabilities();
     if (ui.rampEnabled.checked) {
-      await runRamp(voltage, current === null ? "max" : current, preference);
+      await rampRequest(voltage, current === null ? "max" : current, preference);
       return;
     }
+    state.pendingPdoPosition = null;
+    renderCapabilities();
     setRequestFeedback(`Requesting ${displayMillivolts(voltage)}…`, "pending");
     await sendCommand(`request ${voltage} ${current === null ? "max" : current} ${preference}`);
     setRequestFeedback(`Request queued for ${displayMillivolts(voltage)}${current === null ? " at the available current" : ` with ${displayMilliamps(current)} requested`}.`, "pending");
@@ -1582,6 +1608,13 @@ ui.rawCommandForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   const command = ui.rawCommand.value.trim();
   if (!command) return;
+  const request = ui.rampEnabled.checked ? typedRequest(command) : null;
+  if (request) {
+    addLog(`${command} (ramped)`, "outgoing");
+    ui.rawCommand.value = "";
+    await rampRequest(request.millivolts, request.current, request.preference);
+    return;
+  }
   try {
     await sendCommand(command);
     ui.rawCommand.value = "";

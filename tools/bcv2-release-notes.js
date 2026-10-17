@@ -17,6 +17,6 @@ if (!release.date) console.error(`Warning: ${version} has no date yet, so its no
 
 const lines = release.changes.map((change) => `- ${change}`);
 if (release.console?.length) lines.push("", "In the console:", "", ...release.console.map((change) => `- ${change}`));
-lines.push("", "Update your card at https://anasmalas.com/bcv2/update/. Every release is at https://anasmalas.com/bcv2/changelog/.");
+lines.push("", "Update your card: https://anasmalas.com/bcv2/update/", "All release notes: https://anasmalas.com/bcv2/changelog/");
 if (release.build) lines.push("", `Firmware ${release.build}`);
 process.stdout.write(`${lines.join("\n")}\n`);
