@@ -1,0 +1,48 @@
+---
+layout: layouts/base.njk
+title: Whats new on the BCv2 · Anas Malas
+description: Firmware updates for the BCv2 business card, newest first, and how to hear about the next one.
+permalink: /bcv2/changelog/
+---
+{# Notes live in _data/bcv2Releases.json, newest first. A release without a
+   date is still being worked on: it shows here as Coming, and stays out of
+   the feed until it has one. #}
+{% set notes = bcv2Releases %}
+<article class="note-page bcv2-update bcv2-changelog">
+  <header class="note-hero shell reading-width">
+    <a class="back-link" href="/bcv2/">← BCv2 guide</a>
+    <p class="eyebrow"><span class="status-dot" aria-hidden="true"></span>BCv2</p>
+    <h1 class="note-title">Whats new</h1>
+    <p class="note-dek">Every firmware update for the card, newest first. <a href="/bcv2/update/">Update yours here</a>.</p>
+  </header>
+
+  <div class="note-body reading-width">
+    <section class="update-card" id="follow">
+      <h2>Get told when theres a new one</h2>
+      <p><strong>Email from GitHub:</strong> open the <a href="{{ notes.repo }}" rel="noopener">BCv2 releases</a>, press Watch, pick Custom and tick Releases.</p>
+      <p><strong>Feed:</strong> add <a href="{{ notes.feed }}">anasmalas.com{{ notes.feed }}</a> to your feed reader. Theres also feed to email services if you want it in your inbox.</p>
+      <p class="update-aside">The console tells you too, whenever you plug your card in.</p>
+    </section>
+
+    {% for release in notes.releases %}
+    <section class="bcv2-release" id="{{ release.version | replace('.', '-') }}">
+      <h2>{{ release.version }}{% if release.date %} <span class="bcv2-release-date">{{ release.date | readableDate }}</span>{% else %} <span class="beta">Coming</span>{% endif %}</h2>
+      {% if not release.date %}<p class="update-aside">Still in the works, so this list might change.</p>{% endif %}
+      <ul>
+        {% for change in release.changes %}<li>{{ change }}</li>
+        {% endfor %}
+      </ul>
+      {% if release.console %}
+      <h3>In the console</h3>
+      <ul>
+        {% for change in release.console %}<li>{{ change }}</li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+      {% if release.build %}<p class="update-aside">Firmware {{ release.build }}</p>{% endif %}
+    </section>
+    {% endfor %}
+
+    <p class="update-aside">Notes start from v1.1.</p>
+  </div>
+</article>

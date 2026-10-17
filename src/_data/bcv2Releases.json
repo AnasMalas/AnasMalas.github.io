@@ -1,0 +1,22 @@
+{
+  "repo": "https://github.com/AnasMalas/bcv2-releases",
+  "feed": "/bcv2/changelog.xml",
+  "releases": [
+    {
+      "version": "v1.1",
+      "build": null,
+      "date": null,
+      "changes": [
+        "Set the brightness right on the card: hold C- and MODE for 5 seconds, then FINE and COARSE change it and APPLY keeps it.",
+        "The console can set it too, along with how bright the dim dots are and whether to hide leading zeros and the 5V marks. The card remembers all of it.",
+        "Holding the card by its keys while plugging it in doesnt make phantom presses anymore once you let go.",
+        "The lowest current you can set is 0.5A now."
+      ],
+      "console": [
+        "Ramp: step up or down to a voltage over a set time. Some chargers dont like it, so its off until you tick it.",
+        "Tare for the current reading.",
+        "A note by the graph when youre at 5V, where readings are noisier."
+      ]
+    }
+  ]
+}

@@ -10,7 +10,7 @@ permalink: /bcv2/update/
     <a class="back-link" href="/bcv2/">← BCv2 guide</a>
     <p class="eyebrow"><span class="status-dot" aria-hidden="true"></span>BCv2</p>
     <h1 class="note-title">Update your card</h1>
-    <p class="note-dek">The latest firmware is {{ fw.latest }}, from {{ fw.date | readableDate }}.</p>
+    <p class="note-dek">The latest firmware is {% if fw.name %}{{ fw.name }} ({{ fw.latest }}){% else %}{{ fw.latest }}{% endif %}, from {{ fw.date | readableDate }}. <a href="/bcv2/changelog/">Whats new</a></p>
   </header>
 
   <div class="note-body reading-width">
@@ -94,6 +94,8 @@ EOF
 sudo udevadm control --reload-rules &amp;&amp; sudo udevadm trigger</code></pre>
       <p><strong>Stopped partway?</strong> Nothing is broken. Put it back in bootloader mode and update again.</p>
     </details>
+
+    <p class="update-follow">Want to know when theres a new one? Watch the <a href="{{ bcv2Releases.repo }}" rel="noopener">BCv2 releases on GitHub</a> (Watch, then Custom, then Releases) and GitHub emails you, or follow the <a href="{{ bcv2Releases.feed }}">feed</a>.</p>
   </div>
 </article>
 <script src="/bcv2/flash/wch-isp.js?v={{ 'bcv2/flash/wch-isp.js' | fileHash }}" defer></script>

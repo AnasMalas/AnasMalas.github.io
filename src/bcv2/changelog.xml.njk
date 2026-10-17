@@ -1,0 +1,29 @@
+---
+permalink: /bcv2/changelog.xml
+eleventyExcludeFromCollections: true
+---
+<?xml version="1.0" encoding="utf-8"?>
+{# Only releases with a date: one still in the works would tell readers
+   about firmware they cant get yet. #}
+{% set released = bcv2Releases.releases | selectattr("date") %}
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>BCv2 firmware</title>
+  <subtitle>New firmware for the BCv2 business card.</subtitle>
+  <link href="{{ site.url }}{{ bcv2Releases.feed }}" rel="self"/>
+  <link href="{{ site.url }}/bcv2/changelog/"/>
+  <id>{{ site.url }}/bcv2/changelog/</id>
+  <updated>{% if released[0] %}{{ released[0].date | isoDate }}{% else %}2026-10-17T00:00:00.000Z{% endif %}</updated>
+  <author><name>{{ site.name }}</name></author>
+  {% for release in released %}
+  {% set anchor = release.version | replace('.', '-') %}
+  {% set html %}<ul>{% for change in release.changes %}<li>{{ change }}</li>{% endfor %}</ul>{% if release.console %}<p>In the console:</p><ul>{% for change in release.console %}<li>{{ change }}</li>{% endfor %}</ul>{% endif %}<p><a href="{{ site.url }}/bcv2/update/">Update your card</a></p>{% endset %}
+  <entry>
+    <title>BCv2 firmware {{ release.version }}</title>
+    <link href="{{ site.url }}/bcv2/changelog/#{{ anchor }}"/>
+    <id>{{ site.url }}/bcv2/changelog/#{{ anchor }}</id>
+    <published>{{ release.date | isoDate }}</published>
+    <updated>{{ release.date | isoDate }}</updated>
+    <content type="html">{{ html | xmlEscape | safe }}</content>
+  </entry>
+  {% endfor %}
+</feed>

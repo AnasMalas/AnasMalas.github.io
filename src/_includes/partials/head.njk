@@ -28,4 +28,5 @@
 <title>{{ pageTitle }}</title>
 <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 <link rel="alternate" type="application/atom+xml" title="{{ site.name }} notes" href="/feed.xml">
+{% if page.url and page.url.indexOf("/bcv2/") == 0 %}<link rel="alternate" type="application/atom+xml" title="BCv2 firmware" href="{{ bcv2Releases.feed }}">{% endif %}
 <link rel="stylesheet" href="/assets/css/site.css?v={{ 'assets/css/site.css' | fileHash }}">

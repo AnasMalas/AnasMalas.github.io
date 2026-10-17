@@ -950,6 +950,12 @@ html[data-theme="dark"] { --bg: #181818; --paper: #202020; --ink: #eee; --muted:
 .update-more summary { padding: 14px 0; font-size: 19px; font-weight: 500; }
 .update-more[open] { padding-bottom: 8px; }
 .note-body .update-more h3 { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin: 1em 0 .4em; font-size: 20px; }
+.update-follow { margin-top: 30px; padding: 16px 20px; border-left: 3px solid var(--accent); background: var(--soft); font-size: 16px; }
+
+/* BCv2 changelog */
+.bcv2-release { margin-bottom: 34px; }
+.note-body .bcv2-release h2 { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.bcv2-release-date { color: var(--muted); font-size: 16px; font-weight: 400; }
 
 @media (max-width: 520px) {
   .update-card { padding: 20px 18px; }
