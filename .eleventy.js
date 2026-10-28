@@ -4,6 +4,10 @@ const path = require("node:path");
 const Image = require("@11ty/eleventy-img");
 
 module.exports = function (eleventyConfig) {
+  // Reload pages on a change instead of patching them in place: a patch
+  // resets what their scripts set up (the update page lost its update card
+  // and showed every method at once) without running the scripts again.
+  eleventyConfig.setServerOptions({ domDiff: false });
   eleventyConfig.addPassthroughCopy({ "src/assets": "assets" });
   eleventyConfig.addPassthroughCopy({ "src/favicon.svg": "favicon.svg" });
   eleventyConfig.addPassthroughCopy({ "src/CNAME": "CNAME" });
@@ -14,6 +18,8 @@ module.exports = function (eleventyConfig) {
   // The easy flashers are downloaded and run as-is.
   eleventyConfig.addPassthroughCopy({ "src/bcv2/flash": "bcv2/flash" });
   eleventyConfig.ignores.add("src/bcv2/flash/**");
+  // The Python script the guide's USB protocol section links to.
+  eleventyConfig.addPassthroughCopy({ "src/bcv2/bcv2.py": "bcv2/bcv2.py" });
 
   // Short content hash for ?v= on script references, so browsers and
   // Cloudflare pick up a changed file straight away.
@@ -27,7 +33,7 @@ module.exports = function (eleventyConfig) {
     const mode = fullPage ? "dedicated" : "shared";
     const variant = media.variants?.[mode]?.[device] || {};
     return {
-      titlePlacement: variant.titlePlacement || media.titlePlacement || "bottom",
+      titlePlacement: variant.titlePlacement || media.titlePlacement || "outside",
       cropAspect: variant.cropAspect || (device === "mobile" ? "landscape" : "wide"),
       cropX: Number.isFinite(Number(variant.cropX)) ? Number(variant.cropX) : 0,
       cropY: Number.isFinite(Number(variant.cropY)) ? Number(variant.cropY) : 0,

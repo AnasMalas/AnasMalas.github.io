@@ -5,7 +5,11 @@
 (() => {
   const isp = globalThis.Bcv2WchIsp;
   const page = document.querySelector("[data-updater]");
-  if (!page || !isp) return;
+  if (!page) return;
+  const webUsb = "usb" in navigator && window.isSecureContext;
+  // The warning about browsers without WebUSB, only where it applies.
+  page.querySelector("[data-usb-warning]").hidden = webUsb;
+  if (!isp) return;
 
   const ua = navigator.userAgent;
   // iPadOS asks for desktop pages as a Mac, but has a touch screen.
@@ -16,18 +20,19 @@
         : /Windows/.test(ua) ? "windows"
           : /Macintosh/.test(ua) ? "mac"
             : /Linux/.test(ua) ? "linux" : "other";
-  const webUsb = "usb" in navigator && window.isSecureContext;
   const $ = (selector, root = page) => root.querySelector(selector);
 
   function showRoute(route) {
     for (const section of page.querySelectorAll("[data-route]")) section.hidden = section.dataset.route !== route;
-    $("[data-show-browser]").hidden = !webUsb || route === "browser";
+    for (const button of page.querySelectorAll("[data-show-browser]")) button.hidden = !webUsb || route === "browser";
     $("[data-linux-help]").hidden = route !== "browser" || platform !== "linux";
+    $("[data-windows-help]").hidden = route !== "browser" || platform !== "windows";
   }
 
   function initialRoute() {
     if (platform === "ios") return "ios";
-    if (platform === "windows") return "windows";
+    // Windows too: many already have the driver, and the other methods are
+    // one click away if it doesn't work.
     return webUsb ? "browser" : "switch";
   }
 
@@ -49,11 +54,38 @@
   for (const link of page.querySelectorAll("[data-open-trouble]")) {
     link.addEventListener("click", () => { trouble.open = true; });
   }
-  $("[data-show-browser]").addEventListener("click", () => {
-    showRoute("browser");
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  });
+  // No beta tag on Android.
+  $("[data-beta]").hidden = platform === "android";
+
+  // Other ways to update: one tile per way, each showing its own
+  // instructions. Without this script every panel stays visible.
+  const ways = page.querySelectorAll("[data-way]");
+  const panels = page.querySelectorAll("[data-way-panel]");
+  function showWay(way) {
+    for (const tile of ways) tile.setAttribute("aria-pressed", String(tile.dataset.way === way));
+    for (const panel of panels) panel.hidden = panel.dataset.wayPanel !== way;
+  }
+  for (const tile of ways) {
+    tile.addEventListener("click", () => showWay(tile.getAttribute("aria-pressed") === "true" ? null : tile.dataset.way));
+  }
+  showWay(null);
+
+  for (const button of page.querySelectorAll("[data-show-browser]")) {
+    button.addEventListener("click", () => {
+      showRoute("browser");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+  }
   showRoute(initialRoute());
+
+  // Windows: the other methods, behind a button and opened by a failed try.
+  const moreWays = $("[data-more-ways]");
+  const moreWaysPanel = $("[data-more-ways-panel]");
+  function showMoreWays(open) {
+    moreWaysPanel.hidden = !open;
+    moreWays.setAttribute("aria-expanded", String(open));
+  }
+  moreWays.addEventListener("click", () => showMoreWays(moreWaysPanel.hidden));
 
   // Browser updater.
   const card = $('[data-route="browser"]');
@@ -131,7 +163,7 @@
   function messageFor(error) {
     if (error.code === "access") {
       if (platform === "windows") {
-        return "Windows wont let the browser use the card without a driver. Update from your Android phone, or run the Windows flasher once (it installs the driver) and try again.";
+        return "Windows won't let the browser use the card without a driver. Install it or use one of the other methods below.";
       }
       if (platform === "linux") {
         trouble.open = true;
@@ -160,6 +192,7 @@
       device = await navigator.usb.requestDevice({ filters: isp.USB_FILTERS });
     } catch (_) {
       finish("info", "No card picked. If yours wasnt in the list, it isnt in bootloader mode: unplug POWER and do step 2 again, pressing BOOT a bit harder.");
+      if (platform === "windows") showMoreWays(true);
       busy = false;
       button.disabled = false;
       return;
@@ -176,6 +209,7 @@
       button.textContent = "Update another card";
     } catch (error) {
       finish("error", messageFor(error));
+      if (platform === "windows") showMoreWays(true);
       button.textContent = "Try again";
     } finally {
       try {

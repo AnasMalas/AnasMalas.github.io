@@ -11,15 +11,16 @@ permalink: /bcv2/update/
     <p class="eyebrow"><span class="status-dot" aria-hidden="true"></span>BCv2</p>
     <h1 class="note-title">Update your card</h1>
     <p class="note-dek">The latest firmware is {% if fw.name %}{{ fw.name }} ({{ fw.latest }}){% else %}{{ fw.latest }}{% endif %}, from {{ fw.date | readableDate }}. <a href="/bcv2/changelog/">Whats new</a></p>
+    <p class="update-warning" data-usb-warning hidden>Firefox, Safari and every browser on iPhone and iPad don't support WebUSB. Use Chrome or Edge to update here.</p>
   </header>
 
   <div class="note-body reading-width">
     <section class="update-card" data-route="browser" hidden>
-      <h2>Update it right here <span class="beta">Beta</span></h2>
+      <h2>Update now <span class="beta" data-beta>Beta</span></h2>
       <ol class="update-steps">
-        <li>Plug the card's DATA port into this <span data-device>computer</span>.</li>
-        <li>Hold BOOT, plug a charger into POWER, then let go. The display stays off.</li>
-        <li>Press Update and pick your card.</li>
+        <li>With the card fully disconnected, plug the DATA port into this <span data-device>computer</span>.</li>
+        <li>Hold the BOOT button then plug a power supply into the POWER port. A moment after the card is plugged in, let go of BOOT. The card is in bootloader mode for the next 20 seconds or so, try again if the lights come on before you can update it.</li>
+        <li>Press Update, select "Unknown device from QinHeng Electronics (WCH)", and allow your browser to connect to it. You will see the update status on this page.</li>
       </ol>
       <p class="update-aside" data-linux-help hidden>First time on Linux? Chrome needs a udev rule, its under <a href="#trouble" data-open-trouble>Trouble</a>.</p>
       <button class="update-button" type="button" data-update>Update</button>
@@ -28,15 +29,34 @@ permalink: /bcv2/update/
         <p><span data-status>Getting the firmware…</span> Keep the card plugged in.</p>
       </div>
       <p class="update-result" data-result role="status" hidden></p>
-    </section>
-
-    <section class="update-card" data-route="windows" hidden>
-      <h2>Easiest: use your Android phone <span class="beta">Beta</span></h2>
-      <div class="update-phone">
-        <p>Scan this with your phone or open <strong>anasmalas.com/bcv2/update</strong> in Chrome on it. The update runs right in the browser, nothing to install.</p>
-        <svg class="update-qr" viewBox="0 0 33 33" role="img" aria-label="QR code for anasmalas.com/bcv2/update" shape-rendering="crispEdges"><path stroke="#000" d="M2 2.5h7m2 0h1m1 0h5m1 0h2m3 0h7m-29 1h1m5 0h1m1 0h1m6 0h1m1 0h2m1 0h1m1 0h1m5 0h1m-29 1h1m1 0h3m1 0h1m1 0h2m1 0h2m1 0h1m1 0h1m1 0h3m1 0h1m1 0h3m1 0h1m-29 1h1m1 0h3m1 0h1m1 0h1m1 0h2m2 0h4m1 0h2m1 0h1m1 0h3m1 0h1m-29 1h1m1 0h3m1 0h1m2 0h2m2 0h3m2 0h2m2 0h1m1 0h3m1 0h1m-29 1h1m5 0h1m2 0h1m2 0h3m2 0h2m1 0h1m1 0h1m5 0h1m-29 1h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7m-21 1h3m2 0h1m6 0h1m-21 1h1m5 0h1m1 0h2m4 0h2m1 0h1m1 0h1m1 0h2m2 0h3m-26 1h1m2 0h1m2 0h1m1 0h1m3 0h1m1 0h1m2 0h1m3 0h2m1 0h2m-26 1h3m1 0h1m1 0h1m2 0h2m2 0h3m2 0h1m1 0h2m-24 1h1m1 0h2m1 0h1m1 0h2m1 0h1m3 0h3m1 0h4m2 0h2m-26 1h3m2 0h2m5 0h3m1 0h1m1 0h1m1 0h1m1 0h1m5 0h1m-28 1h1m1 0h1m6 0h6m3 0h2m1 0h3m2 0h2m-29 1h1m1 0h1m3 0h2m1 0h2m1 0h7m1 0h2m1 0h4m-27 1h1m1 0h1m1 0h2m4 0h2m1 0h2m3 0h5m1 0h1m1 0h1m1 0h1m-27 1h3m1 0h2m2 0h3m1 0h2m1 0h2m6 0h2m-27 1h3m4 0h2m1 0h3m2 0h6m1 0h3m1 0h3m-29 1h2m3 0h2m3 0h1m2 0h4m2 0h2m2 0h1m1 0h1m2 0h1m-29 1h1m1 0h2m1 0h1m2 0h2m1 0h2m1 0h1m1 0h1m2 0h2m2 0h1m-24 1h1m1 0h1m2 0h5m2 0h1m2 0h3m1 0h6m1 0h3m-21 1h2m1 0h1m1 0h1m1 0h1m4 0h1m3 0h2m-26 1h7m3 0h7m2 0h2m1 0h1m1 0h3m-27 1h1m5 0h1m4 0h1m1 0h1m6 0h1m3 0h1m3 0h1m-29 1h1m1 0h3m1 0h1m3 0h1m2 0h1m1 0h2m2 0h7m1 0h2m-29 1h1m1 0h3m1 0h1m3 0h4m1 0h2m2 0h3m3 0h2m1 0h1m-29 1h1m1 0h3m1 0h1m2 0h1m1 0h1m2 0h2m2 0h1m2 0h7m-28 1h1m5 0h1m6 0h2m3 0h2m2 0h5m1 0h1m-29 1h7m1 0h4m1 0h3m1 0h1m1 0h1m4 0h1m1 0h1"/></svg>
+      <p class="update-aside update-hint">You can use a phone with USB C to power the card, and another to update it.</p>
+      <div class="update-fallback" data-windows-help hidden>
+        <button class="update-link" type="button" data-more-ways aria-expanded="false" aria-controls="more-ways">Didn't work? More methods</button>
+        <div class="update-more-ways" id="more-ways" data-more-ways-panel hidden>
+          <div class="update-method update-method-phone">
+            <div>
+              <h3>Update with your Android phone</h3>
+              <p>Scan this with your phone or open <strong>anasmalas.com/bcv2/update</strong> in Chrome on it. The update runs right in the browser, nothing to install.</p>
+            </div>
+            <svg class="update-qr" viewBox="0 0 33 33" role="img" aria-label="QR code for anasmalas.com/bcv2/update" shape-rendering="crispEdges"><path stroke="#000" d="M2 2.5h7m2 0h1m1 0h5m1 0h2m3 0h7m-29 1h1m5 0h1m1 0h1m6 0h1m1 0h2m1 0h1m1 0h1m5 0h1m-29 1h1m1 0h3m1 0h1m1 0h2m1 0h2m1 0h1m1 0h1m1 0h3m1 0h1m1 0h3m1 0h1m-29 1h1m1 0h3m1 0h1m1 0h1m1 0h2m2 0h4m1 0h2m1 0h1m1 0h3m1 0h1m-29 1h1m1 0h3m1 0h1m2 0h2m2 0h3m2 0h2m2 0h1m1 0h3m1 0h1m-29 1h1m5 0h1m2 0h1m2 0h3m2 0h2m1 0h1m1 0h1m5 0h1m-29 1h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7m-21 1h3m2 0h1m6 0h1m-21 1h1m5 0h1m1 0h2m4 0h2m1 0h1m1 0h1m1 0h2m2 0h3m-26 1h1m2 0h1m2 0h1m1 0h1m3 0h1m1 0h1m2 0h1m3 0h2m1 0h2m-26 1h3m1 0h1m1 0h1m2 0h2m2 0h3m2 0h1m1 0h2m-24 1h1m1 0h2m1 0h1m1 0h2m1 0h1m3 0h3m1 0h4m2 0h2m-26 1h3m2 0h2m5 0h3m1 0h1m1 0h1m1 0h1m1 0h1m5 0h1m-28 1h1m1 0h1m6 0h6m3 0h2m1 0h3m2 0h2m-29 1h1m1 0h1m3 0h2m1 0h2m1 0h7m1 0h2m1 0h4m-27 1h1m1 0h1m1 0h2m4 0h2m1 0h2m3 0h5m1 0h1m1 0h1m1 0h1m-27 1h3m1 0h2m2 0h3m1 0h2m1 0h2m6 0h2m-27 1h3m4 0h2m1 0h3m2 0h6m1 0h3m1 0h3m-29 1h2m3 0h2m3 0h1m2 0h4m2 0h2m2 0h1m1 0h1m2 0h1m-29 1h1m1 0h2m1 0h1m2 0h2m1 0h2m1 0h1m1 0h1m2 0h2m2 0h1m-24 1h1m1 0h1m2 0h5m2 0h1m2 0h3m1 0h6m1 0h3m-21 1h2m1 0h1m1 0h1m1 0h1m4 0h1m3 0h2m-26 1h7m3 0h7m2 0h2m1 0h1m1 0h3m-27 1h1m5 0h1m4 0h1m1 0h1m6 0h1m3 0h1m3 0h1m-29 1h1m1 0h3m1 0h1m3 0h1m2 0h1m1 0h2m2 0h7m1 0h2m-29 1h1m1 0h3m1 0h1m3 0h4m1 0h2m2 0h3m3 0h2m1 0h1m-29 1h1m1 0h3m1 0h1m2 0h1m1 0h1m2 0h2m2 0h1m2 0h7m-28 1h1m5 0h1m6 0h2m3 0h2m2 0h5m1 0h1m-29 1h7m1 0h4m1 0h3m1 0h1m1 0h1m4 0h1m1 0h1"/></svg>
+          </div>
+          <div class="update-method">
+            <h3>Install the driver</h3>
+            <p>The browser needs the WinUSB driver for the card's bootloader. You only do this once:</p>
+            <ol>
+              <li>Put the card in bootloader mode (step 2) and open <a href="https://zadig.akeo.ie" rel="noopener">Zadig</a>.</li>
+              <li>Pick the device whose USB ID reads 4348 55E0 (or 1A86 55E0). It may be called "USB Module" or "Unknown Device". Not listed? Options &gt; List All Devices.</li>
+              <li>Leave the driver on WinUSB and click Install Driver (or Replace Driver).</li>
+              <li>Put the card back in bootloader mode and press Update again.</li>
+            </ol>
+            <p>Only change that one device. If you used WCHISPTool, it will need its own driver back.</p>
+          </div>
+          <div class="update-method">
+            <h3>Download the flash script <span class="beta">Beta</span></h3>
+            <p>Get the <a href="/bcv2/flash/bcv2-flasher.ps1" download>Windows flasher</a>, right click it and pick "Run with PowerShell" (on Windows 11 it might be under "Show more options"). It walks you through the driver the first time, then flashes every card you plug in.</p>
+          </div>
+        </div>
       </div>
-      <p class="update-aside">No Android phone? Get the <a href="/bcv2/flash/bcv2-flasher.ps1" download>Windows flasher</a> <span class="beta">Beta</span>, right click it and pick "Run with PowerShell".</p>
     </section>
 
     <section class="update-card" data-route="ios" hidden>
@@ -52,33 +72,71 @@ permalink: /bcv2/update/
 
     <noscript><p class="update-card">This page needs JavaScript for the browser updater. The other ways below still work.</p></noscript>
 
-    <details class="update-more">
+    <details class="update-more" open>
       <summary>Other ways to update</summary>
-      <h3>In the browser <span class="beta">Beta</span></h3>
-      <p>Chrome or Edge on a Mac, an Android phone, a Chromebook or Linux. Windows needs the driver from the Windows flasher first, then it works there too.</p>
-      <p><button class="update-link" type="button" data-show-browser hidden>Use it in this browser</button></p>
-      <h3>Easy flasher <span class="beta">Beta</span></h3>
-      <p>Downloads the flashing tool and the firmware, then flashes every card you plug in. The window goes green when its done.</p>
-      <p><strong>Windows:</strong> <a href="/bcv2/flash/bcv2-flasher.ps1" download>download bcv2-flasher.ps1</a>, right click it and pick "Run with PowerShell" (on Windows 11 it might be under "Show more options"). The first time, it walks you through Zadig to install the driver.</p>
-      <p><strong>Mac and Linux:</strong> open Terminal and run these:</p>
-      <pre><code>cd ~/Downloads
+      <div class="update-ways" data-ways>
+        <button class="update-way" type="button" data-way="windows" aria-controls="way-windows" aria-pressed="false"><span class="update-way-logos"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="{{ platformLogos.windows }}"/></svg></span>Windows</button>
+        <button class="update-way" type="button" data-way="mac" aria-controls="way-mac" aria-pressed="false"><span class="update-way-logos"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="{{ platformLogos.apple }}"/></svg></span>Mac</button>
+        <button class="update-way" type="button" data-way="linux" aria-controls="way-linux" aria-pressed="false"><span class="update-way-logos"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="{{ platformLogos.linux }}"/></svg></span>Linux</button>
+        <button class="update-way" type="button" data-way="chromebook" aria-controls="way-chromebook" aria-pressed="false"><span class="update-way-logos"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="{{ platformLogos.chrome }}"/></svg></span>Chromebook</button>
+        <button class="update-way" type="button" data-way="android" aria-controls="way-android" aria-pressed="false"><span class="update-way-logos"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="{{ platformLogos.android }}"/></svg></span>Android</button>
+        <button class="update-way" type="button" data-way="diy" aria-controls="way-diy" aria-pressed="false"><span class="update-way-logos"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="{{ platformLogos.chip }}"/></svg></span>Do it yourself</button>
+      </div>
+      <div class="update-way-panel" id="way-windows" data-way-panel="windows">
+        <h3><span class="update-way-logos update-way-logos-small"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="{{ platformLogos.chrome }}"/></svg><svg viewBox="0 0 24 24" aria-hidden="true"><path d="{{ platformLogos.edge }}"/></svg></span>Chrome or Edge <span class="beta">Beta</span></h3>
+        <p>Try updating on this page first. If the browser can't open the card, Windows needs a driver for it, which the easy flasher installs the first time it runs.</p>
+        <p><button class="update-link" type="button" data-show-browser hidden>Use it in this browser</button></p>
+        <h3>Easy flasher <span class="beta">Beta</span></h3>
+        <p>Downloads the flashing tool and the firmware, then flashes every card you plug in. The window goes green when it's done.</p>
+        <p><a href="/bcv2/flash/bcv2-flasher.ps1" download>Download bcv2-flasher.ps1</a>, right click it and pick "Run with PowerShell" (on Windows 11 it might be under "Show more options"). The first time, it walks you through Zadig to install the driver.</p>
+      </div>
+      <div class="update-way-panel" id="way-mac" data-way-panel="mac">
+        <h3><span class="update-way-logos update-way-logos-small"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="{{ platformLogos.chrome }}"/></svg><svg viewBox="0 0 24 24" aria-hidden="true"><path d="{{ platformLogos.edge }}"/></svg></span>Chrome or Edge <span class="beta">Beta</span></h3>
+        <p>Update right on this page, nothing to install.</p>
+        <p><button class="update-link" type="button" data-show-browser hidden>Use it in this browser</button></p>
+        <h3>Easy flasher <span class="beta">Beta</span></h3>
+        <p>Downloads the flashing tool and the firmware, then flashes every card you plug in. Open Terminal and run these:</p>
+        <pre><code>cd ~/Downloads
 curl -fLO https://anasmalas.com/bcv2/flash/bcv2-flasher.sh
 bash bcv2-flasher.sh</code></pre>
-      <h3>Do it yourself</h3>
-      <ol>
-        <li><a href="/assets/bcv2/firmware/bcv2-rev1-product-latest.bin">Download the latest firmware</a>.</li>
-        <li>Get a flashing tool: <a href="https://www.wch-ic.com/downloads/WCHISPTool_Setup_exe.html" rel="noopener">WCHISPTool</a> on Windows, or <a href="https://github.com/ch32-rs/wchisp" rel="noopener">wchisp</a> on Mac and Linux.</li>
-        <li>Plug DATA into your computer, hold BOOT, plug a charger into POWER and let go.</li>
-        <li>In WCHISPTool pick CH32X035, choose the file and press Download. With wchisp, run <code>wchisp flash</code> with the file.</li>
-      </ol>
-      <p>Heads up, on Windows WCHISPTool uses a different driver than the browser and the easy flasher, so stick to one.</p>
+      </div>
+      <div class="update-way-panel" id="way-linux" data-way-panel="linux">
+        <h3><span class="update-way-logos update-way-logos-small"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="{{ platformLogos.chrome }}"/></svg><svg viewBox="0 0 24 24" aria-hidden="true"><path d="{{ platformLogos.edge }}"/></svg></span>Chrome or Edge <span class="beta">Beta</span></h3>
+        <p>Works on this page once Chrome can use the card: add the udev rule under <a href="#trouble" data-open-trouble>Trouble</a> first.</p>
+        <p><button class="update-link" type="button" data-show-browser hidden>Use it in this browser</button></p>
+        <h3>Easy flasher <span class="beta">Beta</span></h3>
+        <p>Downloads the flashing tool and the firmware, then flashes every card you plug in. Open a terminal and run these:</p>
+        <pre><code>cd ~/Downloads
+curl -fLO https://anasmalas.com/bcv2/flash/bcv2-flasher.sh
+bash bcv2-flasher.sh</code></pre>
+      </div>
+      <div class="update-way-panel" id="way-chromebook" data-way-panel="chromebook">
+        <h3><span class="update-way-logos update-way-logos-small"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="{{ platformLogos.chrome }}"/></svg></span>Chrome <span class="beta">Beta</span></h3>
+        <p>Update right on this page, nothing to install.</p>
+        <p><button class="update-link" type="button" data-show-browser hidden>Use it in this browser</button></p>
+      </div>
+      <div class="update-way-panel" id="way-android" data-way-panel="android">
+        <h3><span class="update-way-logos update-way-logos-small"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="{{ platformLogos.chrome }}"/></svg></span>Chrome</h3>
+        <p>Open <strong>anasmalas.com/bcv2/update</strong> in Chrome on your phone and plug the card's DATA port into it. The update runs right in the browser, nothing to install.</p>
+        <p><button class="update-link" type="button" data-show-browser hidden>Use it in this browser</button></p>
+      </div>
+      <div class="update-way-panel" id="way-diy" data-way-panel="diy">
+        <h3>Do it yourself</h3>
+        <ol>
+          <li><a href="/assets/bcv2/firmware/bcv2-rev1-product-latest.bin">Download the latest firmware</a>.</li>
+          <li>Get a flashing tool: <a href="https://www.wch-ic.com/downloads/WCHISPTool_Setup_exe.html" rel="noopener">WCHISPTool</a> on Windows, or <a href="https://github.com/ch32-rs/wchisp" rel="noopener">wchisp</a> on Mac and Linux.</li>
+          <li>Plug DATA into your computer, hold BOOT, plug a charger into POWER and let go.</li>
+          <li>In WCHISPTool pick CH32X035, choose the file and press Download. With wchisp, run <code>wchisp flash</code> with the file.</li>
+        </ol>
+        <p>Heads up, on Windows WCHISPTool uses a different driver than the browser and the easy flasher, so stick to one.</p>
+      </div>
     </details>
 
     <details class="update-more">
       <summary>Is it safe?</summary>
-      <p>Yep. The card's bootloader lives in its own memory that an update cant touch, so if anything goes wrong just put it back in bootloader mode and try again.</p>
-      <p>The browser can only talk to the card you pick in the list. The firmware is checked against its SHA-256 before anything gets written, and the card checks every byte after.</p>
-      <p>The easy flashers are short plain scripts, read them first! They only download <a href="https://github.com/ch32-rs/wchisp" rel="noopener">wchisp</a> v0.3.0 from its GitHub page and the firmware from this site, and check both against fixed SHA-256 hashes. No admin needed, except the Linux udev rule, and on Windows the Microsoft C++ runtime and the driver if you dont have them yet. Those ask first.</p>
+      <p>The card's bootloader lives in its own memory that an update cant touch, so if anything goes wrong just put it back in bootloader mode and try again.</p>
+      <p>The browser can only talk to the card you pick in the list. The firmware is checked against its SHA-256 before it gets written.</p>
+      <p>The easy flashers are short plain scripts, read them or ask your friendly LLM to review. They only download <a href="https://github.com/ch32-rs/wchisp" rel="noopener">wchisp</a> v0.3.0 from its GitHub page and the firmware from this site, and check both against fixed SHA-256 hashes. No admin needed, except the Linux udev rule, and on Windows the Microsoft C++ runtime and the driver if you dont have them yet.</p>
       <p>All of it is <a href="https://github.com/AnasMalas/AnasMalas.github.io/tree/main/src/bcv2/flash" rel="noopener">on GitHub</a>.</p>
     </details>
 

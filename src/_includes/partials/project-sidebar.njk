@@ -1,13 +1,14 @@
 <aside class="reading-sidebar" aria-label="Projects">
+  <p class="sidebar-label">Explore other sections</p>
   <div class="sidebar-top"><h2>Projects</h2><a href="/projects/" aria-label="View all projects">View all ↗</a></div>
   {% for project in siteContent.projects %}
   {% set media = presentation[project.slug] %}
   {% if (media.images and media.images.length) or media.image %}
   {% set sidebarImage = media.images[0] if media.images and media.images.length else { src: media.image, alt: media.alt } %}
-  <a class="sidebar-project" href="/projects/#{{ project.slug }}">
+  <a class="sidebar-project" href="{{ project.fullPageUrl }}">
     <img src="{{ sidebarImage.src }}" alt="{{ sidebarImage.alt or '' }}" loading="lazy" decoding="async">
     <div class="sidebar-project-meta"><span class="post-kind">Project</span>{% if media.date %}<time datetime="{{ media.date }}">{{ media.date | readableDate }}</time>{% endif %}</div>
-    <p>{{ media.displayTitle or (project | readingPost).lead }}</p>
+    <p>{{ project.studio.title or media.displayTitle or (project | readingPost).lead }}</p>
     <span class="sidebar-project-arrow" aria-hidden="true">↗</span>
   </a>
   {% endif %}

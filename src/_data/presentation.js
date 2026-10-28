@@ -43,6 +43,7 @@ const basePresentation = {
   'return-current': {
     date: '2022-12-19',
     sourceUrl: 'https://www.linkedin.com/feed/update/urn:li:activity:7010651170159394816/',
+    repostOf: 'https://www.linkedin.com/posts/andreasbarchanski_emc-emcsimulation-share-7010625385193197568-luha/',
     image: '/assets/images/posts/return-current/01-return-current.jpg',
     alt: 'PCB cross section illustrating a high-frequency return current path',
     images: [

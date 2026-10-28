@@ -4,7 +4,7 @@
     "latest": "0x0105004F",
     "name": "v1.2",
     "date": "2026-10-17",
-    "notes": "Some cards may not turn the output on at higher voltages into large loads, like big capacitors. This update fixes it.",
+    "notes": "This update addresses an issue that affects some units where the charge pump does not start up when large loads are connected.",
     "important": true,
     "download": "https://anasmalas.com/assets/bcv2/firmware/bcv2-rev1-product-0105004F.bin",
     "sha256": "e42e5187593d60fece582f6b4fa3e263786bf62a517ed1632d8e28d485a9e3a2",

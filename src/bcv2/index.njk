@@ -13,33 +13,32 @@ shareImageAlt: The Negotiator II on a power bank on a tree stump in a Japanese g
 {% macro morse(code) %}<span class="bcv2-morse-code" aria-hidden="true">{% for element in code | list %}{% if element == "." %}<i></i>{% else %}<b></b>{% endif %}{% endfor %}</span>{% endmacro %}
 <article class="note-page bcv2-guide">
   <header class="note-hero shell reading-width">
-    <a class="back-link" href="/projects/">← Projects</a>
-    <p class="eyebrow"><span class="status-dot" aria-hidden="true"></span>BCv2</p>
     <h1 class="note-title">{{ studioPage.title if studioPage and studioPage.title else 'The Negotiator II' }}</h1>
-    <p class="note-dek">My second PCB business card, and a USB PD power supply you can carry anywhere.</p>
+    <p class="note-dek">Up to 48V 5A wherever you are. At 2 mm thick, it is made to fit easily into your wallet.</p>
   </header>
 
   {% set fw = bcv2Firmware.product %}
-  {% if fw.important %}
-  <div class="shell reading-width">
+  <div class="shell reading-width bcv2-top{% if fw.important %} bcv2-top-pair{% endif %}">
+    {% if fw.important %}
     <section class="bcv2-alert" aria-labelledby="bcv2-alert-title">
-      <h2 id="bcv2-alert-title">Please update your card to firmware {{ fw.name }}</h2>
-      <p>{{ fw.notes }}</p>
-      <a class="bcv2-alert-go" href="/bcv2/update/">Update your card <span aria-hidden="true">→</span></a>
-      <a class="bcv2-alert-notes" href="/bcv2/changelog/#{{ fw.name | replace('.', '-') }}">Whats new in {{ fw.name }}</a>
+      <div class="bcv2-alert-text">
+        <h2 id="bcv2-alert-title">Please update your card to firmware {{ fw.name }}</h2>
+        <p>{{ fw.notes }}</p>
+      </div>
+      <div class="bcv2-alert-links">
+        <a class="bcv2-alert-go" href="/bcv2/update/">Update in 30 seconds<br>from your browser <span aria-hidden="true">→</span></a>
+        <a class="bcv2-alert-notes" href="/bcv2/changelog/#{{ fw.name | replace('.', '-') }}">Whats new in {{ fw.name }}</a>
+      </div>
     </section>
-  </div>
-  {% endif %}
-
-  <div class="shell reading-width">
+    {% endif %}
     <a class="bcv2-console-card" href="/bcv2/console/">
       <span class="bcv2-console-shot">
         <img src="{{ img }}console-preview-480.webp" srcset="{{ img }}console-preview-480.webp 480w, {{ img }}console-preview-960.webp 960w" sizes="(max-width: 600px) calc(100vw - 40px), 280px" width="960" height="546" alt="" decoding="async">
       </span>
       <span class="bcv2-console-copy">
         <span class="bcv2-console-kicker">The console</span>
-        <span class="bcv2-console-title">See everything your card is doing</span>
-        <span class="bcv2-console-line">Plug the card into your computer or Android phone to watch live graphs of voltage, current and power, see everything your charger offers in detail and request exact voltages.</span>
+        <span class="bcv2-console-title">Control and monitor your charger and card</span>
+        <span class="bcv2-console-line">Plug the card into your computer or Android phone to watch live graphs of voltage, current and power, see everything your charger offers in detail and request supported voltages in 20&nbsp;mV increments.</span>
         <span class="bcv2-console-go">Open the console <span aria-hidden="true">→</span></span>
       </span>
     </a>
@@ -62,9 +61,10 @@ shareImageAlt: The Negotiator II on a power bank on a tree stump in a Japanese g
         <li>USB PD 3.1</li>
         <li>5 to 48V in 0.1V steps</li>
         <li>Up to 5A</li>
-        <li>2 mm thick</li>
-        <li>About 200 LEDs</li>
+        <li>2 mm thick total</li>
+        <li>190 LEDs</li>
         <li>$8 a board</li>
+        <li>$3.8 BOM cost</li>
       </ul>
 
       <p class="bcv2-lead">The Negotiator II is here! USB PD 3.1: Unlocked.</p>
@@ -130,7 +130,141 @@ shareImageAlt: The Negotiator II on a power bank on a tree stump in a Japanese g
 
       <p>So you got one of my business cards, awesome! Its also a tiny USB PD power supply, here's how to use it.</p>
       <p>Want to see everything its doing? Plug it into your computer and open the <a href="/bcv2/console/">console</a>.</p>
-      <p><em>This page is a work in progress, so check back again soon!</em></p>
+      <p><em>This page is a work in progress, I will add more information and polish it... Eventually.</em></p>
+
+      <details class="bcv2-sub" id="serial">
+        <summary>
+          <span class="bcv2-sub-title">Control it from your own code</span>
+          <span class="bcv2-sub-dek">The USB protocol the console uses, and a Python script</span>
+        </summary>
+
+        <p>The card speaks a small binary protocol over USB serial which the console uses. Here's how to make your own script to talk to it. To get going quickly, grab <a href="/bcv2/bcv2.py" download>bcv2.py</a>, a Python script that handles the protocol.</p>
+
+        <h4>Connect</h4>
+        <p>Plug {{ silk("DATA") }} into your computer and it shows up as a serial port: a COM port on Windows, /dev/ttyACM0 on Linux, /dev/cu.usbmodem-something on a Mac. Its USB ID is 1A86:FE0C. The baud rate doesn't matter since it's USB. Set DTR when you open the port to get the communication going. pyserial and most serial terminals set it for you.</p>
+        <p>Once the port is open, the card sends its device info, then a reading every 50 ms. When its USB queue is full, the card drops readings, device info and charger offers instead of waiting, so ask again if one doesn't come (the console asks for device info up to three times, 400 ms apart). Answers to your commands aren't dropped.</p>
+        <p>Firmware v1.2 and earlier can also lose the first packet each way after the port opens, every other time it opens. Start with a device query (0x01) and send it again if no answer comes within half a second, like the console does. Once it's answered, later commands get through.</p>
+
+        <h4>Frames</h4>
+        <p>Everything, both ways, is a frame like this. Numbers are little-endian.</p>
+        <div class="bcv2-table">
+          <table>
+            <thead><tr><th>Byte</th><th>What</th></tr></thead>
+            <tbody>
+              <tr><td>0, 1</td><td>0x50 0x44, "PD"</td></tr>
+              <tr><td>2</td><td>Version, 1</td></tr>
+              <tr><td>3</td><td>Kind: which command or event</td></tr>
+              <tr><td>4</td><td>Sequence number</td></tr>
+              <tr><td>5</td><td>Payload length, 0 to 56</td></tr>
+              <tr><td>6 on</td><td>Payload</td></tr>
+              <tr><td>Last</td><td>CRC-8 of byte 2 to the end of the payload: polynomial 0x07, starting at 0, no final XOR</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>Give each command a sequence number from 1 to 255. The card answers each one with a result (kind 0x80) with the same sequence number, and the events it sends on its own have 0. To read frames, find 0x50 0x44, wait for the whole frame and check the CRC. If it doesn't match, skip one byte and look for the next 0x50 0x44.</p>
+        <pre><code>def crc8(data):
+    crc = 0
+    for byte in data:
+        crc ^= byte
+        for _ in range(8):
+            crc = ((crc &lt;&lt; 1) ^ 0x07) &amp; 0xFF if crc &amp; 0x80 else (crc &lt;&lt; 1) &amp; 0xFF
+    return crc
+
+def frame(kind, seq, payload=b""):
+    body = bytes([1, kind, seq, len(payload)]) + payload
+    return b"PD" + body + bytes([crc8(body)])
+
+frame(0x01, 1)  # ask for device info: 50 44 01 01 01 00 68</code></pre>
+
+        <h4>Commands</h4>
+        <div class="bcv2-table">
+          <table>
+            <thead><tr><th>Kind</th><th>Payload</th><th>What it does</th></tr></thead>
+            <tbody>
+              <tr><td>0x01</td><td>None</td><td>Sends device info (0x81).</td></tr>
+              <tr><td>0x02</td><td>None</td><td>Asks the charger for its offers again (0x83).</td></tr>
+              <tr><td>0x10</td><td>9 bytes: voltage in mV (u32), current in mA (u32, 0xFFFFFFFF for the most on offer), supply (u8: 0 auto, 1 fixed, 2 PPS, 3 SPR AVS, 4 EPR AVS)</td><td>Requests a voltage, like {{ key("APPLY") }}. 5000 mV or more, and 500 mA or more.</td></tr>
+              <tr><td>0x0C</td><td>None</td><td>Turns the output on, like {{ key("LOAD ON/OFF") }}. The same safety rules apply.</td></tr>
+              <tr><td>0x0D</td><td>None</td><td>Turns the output off.</td></tr>
+              <tr><td>0x05</td><td>None</td><td>Enters EPR, for 22V and up.</td></tr>
+              <tr><td>0x07</td><td>None</td><td>Exits EPR.</td></tr>
+              <tr><td>0x06</td><td>None</td><td>Asks the charger for its EPR offers again (0x83).</td></tr>
+              <tr><td>0x32</td><td>None</td><td>Reads the black box (0xA7).</td></tr>
+              <tr><td>0x34</td><td>3 bytes: brightness 0 to 43, dim dots 3 to 60, flags (1 hides leading zeros, 2 hides the marks on the bar)</td><td>Sets the display, and the card keeps it. The defaults are 34, 21 and 0. From firmware v1.1.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>The result (0x80) is one byte: 0 queued, 1 busy, 2 invalid, 3 unsupported. Busy means the card already holds 4 commands, so wait a moment and send it again. Queued means the card took the command, not that the charger agreed, so watch the readings for the contract to change. It changes to your request rounded down to the charger's step (20 mV for PPS, 100 mV for AVS). If it doesn't change, the charger said no and {{ silk("WARNING") }} plays R.</p>
+
+        <h4>Events</h4>
+        <div class="bcv2-table">
+          <table>
+            <thead><tr><th>Kind</th><th>Bytes</th><th>What</th></tr></thead>
+            <tbody>
+              <tr><td>0x80</td><td>1</td><td>Command result, above.</td></tr>
+              <tr><td>0xA5</td><td>22</td><td>A reading, every 50 ms. Card uptime in ms (0 to 3), VBUS in mV (4 to 7), current in mA (8 to 11), contract mV (12 to 15, 0 when there's none), contract mA (16 to 19), flags (20 and 21, below).</td></tr>
+              <tr><td>0x81</td><td>32</td><td>Device info. Card ID (0 to 7), flags (8: bit 0 PPS, bit 1 EPR), max mV (9 to 12), max mA (13 to 16), max mW (17 to 20), firmware build (21 to 24, 0x0105004F is v1.2), library version (25 to 28), display settings as in 0x34 (29 to 31). Firmware before v1.1 sends 21 or 29 bytes.</td></tr>
+              <tr><td>0x83</td><td>3, plus 4 per offer</td><td>Charger offers. 0 for an SPR list or 1 for EPR (0), the charger can do EPR (1), how many offers (2), then each offer as a 4-byte PDO from byte 3. Sent when a charger is plugged in, after 0x02 or 0x06, and when EPR starts.</td></tr>
+              <tr><td>0x88</td><td>6</td><td>Hard reset. 0 if the charger sent it, 1 if the card did (0), recovery time in ms (1 to 4), cause (5). The output is off after one.</td></tr>
+              <tr><td>0xA7</td><td>56</td><td>Black box. Saved supply as in 0x10 (3), saved mV (8 to 11) and mA (12 to 15), how many events (2), then up to 6 events of 6 bytes from byte 20: uptime in seconds (u16), context (u16), kind (u8: 1 hard reset, 2 PHY reset failed, 3 PD PHY unstable, 4 partner timeout, 5 protocol error, 6 terminal stop, 7 EPR entry failed, 8 power rail fell) and detail (u8). The script decodes the rest.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4>Reading flags</h4>
+        <div class="bcv2-table">
+          <table>
+            <thead><tr><th>Bit</th><th>Means</th></tr></thead>
+            <tbody>
+              <tr><td>0</td><td>A charger is attached.</td></tr>
+              <tr><td>1</td><td>There's a contract.</td></tr>
+              <tr><td>2</td><td>LOAD is on, what you asked for.</td></tr>
+              <tr><td>3</td><td>The output is actually on.</td></tr>
+              <tr><td>4</td><td>The inrush routine started the output, WARN I. From firmware v1.2.</td></tr>
+              <tr><td>5</td><td>The display is dimmed for the LDO, {{ silk("THERM LIM") }}.</td></tr>
+              <tr><td>11</td><td>The brake tripped. Turn LOAD on again to clear it.</td></tr>
+              <tr><td>12 to 14</td><td>What last turned LOAD off: 1 the LOAD key, 2 APPLY, 3 a USB command, 4 the brake, 5 the charger session changed. From firmware v1.2.</td></tr>
+              <tr><td>15</td><td>Your settings couldn't be saved, WARN S.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>The other bits are for debugging.</p>
+
+        <h4>Offers</h4>
+        <p>Each offer is a 32-bit PDO, laid out as the USB PD spec has it. Offers 1 to 7 are SPR and 8 and up are EPR.</p>
+        <div class="bcv2-table">
+          <table>
+            <thead><tr><th>Type, top bits</th><th>Voltage</th><th>Current or power</th></tr></thead>
+            <tbody>
+              <tr><td>Fixed, 00</td><td>Bits 19 to 10 × 50 mV</td><td>Bits 9 to 0 × 10 mA</td></tr>
+              <tr><td>PPS, 1100</td><td>Bits 15 to 8 × 100 mV, to bits 24 to 17 × 100 mV</td><td>Bits 6 to 0 × 50 mA</td></tr>
+              <tr><td>EPR AVS, 1101</td><td>Bits 15 to 8 × 100 mV, to bits 25 to 17 × 100 mV</td><td>Bits 7 to 0, in W</td></tr>
+              <tr><td>SPR AVS, 1110</td><td>9V to 15V, or to 20V when it has a 20V current</td><td>Bits 19 to 10 × 10 mA up to 15V, bits 9 to 0 × 10 mA above</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h4>What the console does</h4>
+        <p>When it connects, it sends 0x01 until device info arrives (up to three times, 400 ms apart), sends 0x02 for the offers and starts drawing the readings. A request is one 0x10. A ramp sends one 0x10 at a time, and the next once the contract has changed and VBUS is within an eighth plus 0.5V of it, the card's own check. Tare, averaging and the CSV all happen in the browser.</p>
+
+        <h4>The Python script</h4>
+        <p><a href="/bcv2/bcv2.py" download>bcv2.py</a> needs Python 3.8 or later and pyserial (<code>pip install pyserial</code>), and finds the card on its own.</p>
+        <pre><code>python bcv2.py                      # card info, charger offers, then live readings
+python bcv2.py watch --csv log.csv  # the same, saving every reading like the console's CSV
+python bcv2.py request 9            # 9V, the card picks the supply
+python bcv2.py request 12.34 2.5 --supply pps
+python bcv2.py load on
+python bcv2.py epr on
+python bcv2.py blackbox</code></pre>
+        <p>Or use it from your own script:</p>
+        <pre><code>from bcv2 import Card
+
+with Card() as card:
+    card.request(15)
+    card.load(True)
+    for reading in card.readings(seconds=10):
+        print(reading["mv"], reading["ma"])</code></pre>
+      </details>
 
       <h3>What can it do?</h3>
       <h4>See what your charger offers</h4>
@@ -171,7 +305,7 @@ shareImageAlt: The Negotiator II on a power bank on a tree stump in a Japanese g
 
       <div class="bcv2-panel">
         <h3>What the lights mean</h3>
-        <p>{{ silk("THERM LIM") }} lights up and {{ silk("TEMP WARN") }} blinks when the card dims its display to keep its regulator happy. That only happens above 21V, nothing is wrong.</p>
+        <p>{{ silk("THERM LIM") }} lights up, {{ silk("TEMP WARN") }} blinks, and the card dims its display to keep LDO thermal dissipation in check starting above 21V on the input. The LDO gets warm to the touch but not uncomfortable, still, it is better not to touch it when that light is blinking.</p>
         <p>{{ silk("PPS CV") }} and {{ silk("PPS CL") }} glow dimly whenever you're on PPS. The bright one shows if the charger is holding your voltage (CV) or limiting your current (CL). Some chargers dont report this correctly, and some only do CL at certain currents.</p>
         <p>If {{ silk("WARNING") }} blinks, its spelling a letter in Morse code. If theres more than one, they take turns:</p>
         <ul class="bcv2-morse">
@@ -179,7 +313,7 @@ shareImageAlt: The Negotiator II on a power bank on a tree stump in a Japanese g
           <li><strong>S</strong>{{ morse("...") }}<span>your settings couldnt be saved.</span></li>
           <li><strong>T</strong>{{ morse("-") }}<span>the power dipped. If that turned your load off, it keeps going until you turn it back on.</span></li>
           <li><strong>F</strong>{{ morse("..-.") }}<span>the card lost power a few times while restoring your last setting, so it started with a safer one. Press {{ key("APPLY") }} to try again.</span></li>
-          <li><strong>I</strong>{{ morse("..") }}<span>the output didnt start straight away into your load (big capacitors do this), so the card dropped the voltage until it did, then went back up. From firmware v1.2.</span></li>
+          <li><strong>I</strong>{{ morse("..") }}<span>Due to Inrush, the output didnt turn on (big capacitors and loads might cause this). The card dropped the voltage to aid the charge pump, then raised it back up. Added in firmware v1.2.</span></li>
         </ul>
       </div>
 
@@ -191,8 +325,8 @@ shareImageAlt: The Negotiator II on a power bank on a tree stump in a Japanese g
           <p>Then you arent using a full PD power supply, so thats all the card can get. Use a USB PD charger or powerbank thats atleast 20W, laptop chargers are usually the best ones.</p>
         </div>
         <div class="bcv2-tip">
-          <h4>Want 28V and up?</h4>
-          <p>You'll need an EPR charger (these are usually 140W or more) and a 240W cable.</p>
+          <h4>Want 22V and up?</h4>
+          <p>You'll need an EPR charger (these are usually 140W per port or more) and a 240W rated USB-C cable.</p>
         </div>
       </div>
 
@@ -234,15 +368,17 @@ shareImageAlt: The Negotiator II on a power bank on a tree stump in a Japanese g
   </div>
 </article>
 <script>
-  // Links like /bcv2/#privacy point inside a closed section: open it first.
+  // Links like /bcv2/#privacy point inside a closed section: open it, and
+  // the section around it for #serial, first.
   (() => {
     const reveal = () => {
       const id = decodeURIComponent(location.hash.slice(1));
       const target = id && document.getElementById(id);
-      const section = target && target.closest("details");
-      if (!section || section.open) return;
-      section.open = true;
-      target.scrollIntoView();
+      let opened = false;
+      for (let section = target && target.closest("details"); section; section = section.parentElement.closest("details")) {
+        if (!section.open) section.open = opened = true;
+      }
+      if (opened) target.scrollIntoView();
     };
     reveal();
     addEventListener("hashchange", reveal);
